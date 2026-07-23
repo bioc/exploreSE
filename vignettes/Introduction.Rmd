@@ -34,7 +34,7 @@ library(exploreSE)
 To explore the results of differential expression analysis, we need to organise them in the structure and you will learn how to do that in this vignette. If you want to explore on your own, you can  run the following code and start exploring the example data.
 
 ```{r quickstart, eval=FALSE}
-example(iSEE, ask = FALSE)
+example(exploreSE, ask = FALSE)
 ```
 
 

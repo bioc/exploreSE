@@ -1,3 +1,7 @@
+#' checks for the presence of pre-computed DE results in the
+#' the object. It checks the DeeDee slot if applicable, otherwise
+#' it checks metadata(object)$de_results
+#' @noRd
 .check_precomputed_de <- function(SE) {
   if (is.null(SE)) {
     return(FALSE)
@@ -14,6 +18,10 @@
   }
 }
 
+#' checks for the presence of pre-computed FE results in the
+#' the object. It checks the DeeDee slot if applicable, otherwise
+#' it checks metadata(object)$fe_results
+#' @noRd
 .check_precomputed_fe <- function(SE) {
   if (is.null(SE)) {
     return(FALSE)
@@ -30,6 +38,8 @@
   }
 }
 
+#' helper funciton to fetch the names of the DE comparisons in the object
+#' @noRd
 .de_results_names <- function(SE) {
   if (methods::is(SE, "DeeDeeExperiment")) {
     DeeDeeExperiment::getDEANames(SE)
@@ -38,6 +48,9 @@
   }
 }
 
+#' helper funciton to fetch the names of the FE comparisons in the object,
+#' belonging to a specified DE comparison
+#' @noRd
 .fe_results_names <- function(SE, NAME) {
   if (methods::is(SE, "DeeDeeExperiment")) {
     return(names(DeeDeeExperiment::getFEAList(SE, NAME)))
@@ -45,7 +58,8 @@
   return(names(S4Vectors::metadata(SE)$fe_results[[NAME]]))
 }
 
-
+# fetches a specified DE comparison by name
+#' @noRd
 .de_result <- function(SE, NAME) {
   if (methods::is(SE, "DeeDeeExperiment")) {
     res <- DeeDeeExperiment::getDEA(SE, NAME, type = "data.frame") %>%
@@ -55,13 +69,16 @@
   }
 }
 
+# fetches a specified DE comparison by name
+#' @noRd
 .fe_result <- function(SE, NAME) {
   fe_list <- DeeDeeExperiment::getFEAList(SE, NAME, format = "original") %>%
     purrr::map(BiocGenerics::as.data.frame)
   return(fe_list)
 }
 
-
+# plotting function for DE genes, returns a bar chart
+#' @noRd
 .plot_des <- function(
   RES,
   NAME,
@@ -86,7 +103,11 @@
     ggplot2::theme(legend.position = "none")
   return(p)
 }
-
+#' takes the functional enrichments and creates a bar chart
+#' recognises GSEA results  by the use of NES in the colnames
+#' for ORA analyiss it plots the Fold Enrichment when available or
+#' able to be calculated
+#' @noRd
 .plot_fe <- function(
   FE,
   NAME = "up_go",
@@ -98,7 +119,6 @@
   padj_col <- ifelse("gs_p.adjust" %in% names(FE), "gs_p.adjust", "p.adjust")
 
   if (sum(stringr::str_detect(names(FE), "NES")) > 0) {
-    #write code for gsea style enrichment
     gsea_df <- FE %>%
       dplyr::filter(!!rlang::sym(padj_col) < padj_CO) %>%
       dplyr::group_by(sign(NES)) %>%
@@ -249,8 +269,8 @@
   }
   return(p_p)
 }
-
-
+#' plots a volcano plot, highlights selected genes.
+#' @noRd
 .plot_volcano <- function(
   RES,
   NAME,
@@ -383,8 +403,8 @@
 
   return(p_p)
 }
-
-
+#' Creates some random data tio demonstrate the colData, PCA and expression elements.
+#' @noRd
 .create_demo_data <- function() {
   n_genes <- 1000
   n_samples <- 12
@@ -421,3 +441,87 @@
     rowData = rowData
   )
 }
+
+#' creates fc-fc plots
+#' @noRd
+# .plot_fcfc <- function(
+#   OBJ,
+#   NAME,
+#   PARTNER_NAME,
+#   padj_CO = 0.05,
+#   fc_CO = 1,
+#   highlights = NULL,
+#   COLS = rev(c("red", "blue", "purple", "grey")),
+#   LABEL_TOP = TRUE,
+#   TOPN = 5
+# ) {
+#   df_a <- .de_result(OBJ, NAME = NAME) |>
+#     tibble::rownames_to_column("gene_id")
+
+#   df_b <- .de_result(OBJ, NAME = PARTNER_NAME) |>
+#     tibble::rownames_to_column("gene_id")
+
+#   df_list <- list(df_a, df_b) |>
+#     purrr::set_names(c(NAME, PARTNER_NAME)) |>
+#     purrr::map(\(x) {
+#       dplyr::filter(
+#         x,
+#         !is.na(padj),
+#         !is.na(log2FoldChange),
+#         !is.infinite(log2FoldChange)
+#       )
+#     }) |>
+#     purrr::imap(\(DF, .NAME) {
+#       dplyr::mutate(
+#         DF,
+#         sig = ifelse(padj < padj_CO & abs(log2FoldChange) > fc_CO, .NAME, "ns")
+#       )
+#     })
+
+#   df_comb <- dplyr::left_join(
+#     df_list[[NAME]],
+#     df_list[[PARTNER_NAME]],
+#     by = dplyr::join_by(gene_id == gene_id),
+#     suffix = paste0("_", c("A", "B"))
+#   ) |>
+#     dplyr::mutate(
+#       sig = dplyr::case_when(
+#         sig_A == "ns" & sig_B == "ns" ~ "ns",
+#         sig_A == NAME & sig_B == PARTNER_NAME ~ "both",
+#         sig_A == "ns" ~ PARTNER_NAME,
+#         sig_B == "ns" ~ NAME
+#       ) |>
+#         forcats::fct_relevel(NAME, PARTNER_NAME, "both") |>
+#         forcats::fct_rev()
+#     ) |>
+#     dplyr::select(-sig_A, -sig_B) |>
+#     dplyr::filter(!is.na(sig))
+
+#   p <- ggplot2::ggplot(
+#     df_comb,
+#     ggplot2::aes(
+#       log2FoldChange_A,
+#       log2FoldChange_B,
+#       color = sig,
+#       text = paste(
+#         "Gene:",
+#         gene_id,
+#         "\n",
+#         paste("logFC", NAME),
+#         round(log2FoldChange_A, 2),
+#         "\n",
+#         paste("logFC", PARTNER_NAME),
+#         round(log2FoldChange_B, 2)
+#       )
+#     )
+#   ) +
+#     ggplot2::geom_point() +
+#     ggplot2::scale_color_manual(values = COLS) +
+#     ggplot2::labs(
+#       x = paste("logFC", NAME),
+#       y = paste("logFC", PARTNER_NAME),
+#       color = "Signficant in:"
+#     )
+
+#   return(p)
+# }

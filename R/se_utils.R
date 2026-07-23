@@ -1,20 +1,38 @@
-#' Title
+#' Calculate GO Enrichments for a given comparison
 #'
-#' @param NAME name of the de comparison
-#' @param obj the object
-#' @param species the species hs/mm
-#' @param gene_type the type of gene identifier
+#' A function to calculate GO term enrichments from a given summarizedExperiment
+#' or DeeDee experiment. By default, it calculates separate enrichments for
+#' up- downregulated genes, at the cutoffs of |logFC| > 1 and adjusted p-
+#' value < 0.05. It utilises the [clusterProfiler::enrichGO()] function.
+#'
+#' @param NAME character, name of the DE comparison
+#' @param obj DeeDeeExperiment or SummarizedExperiment, the object
+#' @param species character, the species hs/mm
+#' @param gene_type character, the type of gene identifier
 #'
 #' @returns a DeeDeeExperiment or SummarizedExperiment
 #' @export
 #'
 #' @examples
-#' TRUE
-get.gos <- function(NAME, obj = dds, species = "hs", gene_type = "SYMBOL") {
+#' data("se_with_des", package = "exploreSE")
+#' se_with_go <- get.gos(obj = se_with_de,
+#'                       NAME = "baseline",
+#'                       gene_type = "ENSEMBL")
+#'
+
+get.gos <- function(NAME, obj, species = "hs", gene_type = "SYMBOL") {
   if (species == "hs") {
     DB <- org.Hs.eg.db::org.Hs.eg.db
-  } else {
+  } else if (species == "mm") {
     DB <- org.Mm.eg.db::org.Mm.eg.db
+  } else {
+    stop("Please specify a valid species. Supported: hs, mm")
+  }
+
+  if (gene_type %notin% c("SYMBOL", "ENTREZID", "ENSEMBL")) {
+    stop(
+      "Please specify a valid gene identifier. Supported: SYMBOL, ENSEMBL, ENTREZID"
+    )
   }
 
   res <- .de_result(obj, NAME)
@@ -84,50 +102,56 @@ get.gos <- function(NAME, obj = dds, species = "hs", gene_type = "SYMBOL") {
       obj <- DeeDeeExperiment::renameFEA(obj, "dn_go", paste0(NAME, "_down_go"))
     }
   }
-
-  # if(!is.list(metadata(obj)$fe_results)){
-  #   S4Vectors::metadata(obj)$fe_results <- list()
-  # }
-  # if(!is.list(metadata(obj)$fe_results[[NAME]])){
-  #   S4Vectors::metadata(obj)$fe_results[[NAME]] <- list()
-  # }
-  #
-  # S4Vectors::metadata(obj)$fe_results[[NAME]][["up_go"]] <- up_go
-  # S4Vectors::metadata(obj)$fe_results[[NAME]][["dn_go"]] <- dn_go
   return(obj)
 }
-## EXAMPLE
-# dds_2 <- get.gos("KO effect in untreated")
 
-#' Title
+
+#' Calculate GSEA Enrichments for a given comparison
 #'
-#' @param NAME name of the DE comparison
-#' @param obj the SE/DeeDeeExperiemnt
-#' @param type hallmark or reactome
-#' @param conditions which conditions are compared
-#' @param species what species
-#' @param condition_var whats the variable name for this comparison, as a bare
-#'   column name (e.g. `condition`) or a string (e.g. `"condition"`)
+#' Calculates the GSEA enrichments with the counts within a summarizedExperiment
+#' or DeeDeeExperiment and adds them in the respective slots. It follows
+#' the [original signal-to-noise ratio of the method](https://www.pnas.org/doi/10.1073/pnas.0506580102); other approaches for
+#' ranking of genes are available in other implementations,
+#' such as the [clusterProfiler::GSEA()] implementation which calls for
+#' logFC ranked genes.
+#'
+#' @param NAME character, name of the DE comparison
+#' @param obj DeeDeeExperiment or SummarizedExperiment, the object
+#' @param type character, the type of gene set, HALLMARK or REACTOME
+#' @param conditions a vector of length 2, which levels of the condition variable are being compared,
+#' @param species character, supported values are "hs" and "mm"
+#' @param condition_var symbol or character, the variable name for this comparison
+#' @param gene_type character, the type of gene identifier
 #'
 #' @returns a DeeDeeExperiment or SummarizedExperiment
 #' @export
 #'
 #' @examples
-#' TRUE
+#' data("se_with_des", package = "exploreSE")
+#' se_with_gsea <- get.gsea(NAME = "baseline",
+#'                          obj = se_with_de,
+#'                          type = "HALLMARK",
+#'                          condition_var = "dex",
+#'                          conditions = c("trt", "untrt"),
+#'                          gene_type = "ENSEMBL")
+
 get.gsea <- function(
   NAME,
-  obj = dds,
+  obj,
   type = "HALLMARK",
   conditions,
   species = "hs",
-  condition_var = "condition"
+  condition_var = "condition",
+  gene_type = "SYMBOL"
 ) {
   condition_var <- rlang::ensym(condition_var)
 
   if (species == "hs") {
     SPECIES <- "HS"
-  } else {
+  } else if (species == "mm") {
     SPECIES <- "MM"
+  } else {
+    stop("Please specify a valid species. Supported: hs, mm")
   }
 
   if (type == "HALLMARK") {
@@ -138,19 +162,40 @@ get.gsea <- function(
       subcollection = "CP:REACTOME",
       db_species = SPECIES
     )
+  } else {
+    stop(
+      "Please specify a valid gene set identifier. Supported: HALLMARK, REACTOME"
+    )
   }
 
-  gene_sets <- gene_sets %>%
-    dplyr::select(gs_name, gene_symbol) %>%
-    dplyr::distinct()
+  if (gene_type == "SYMBOL") {
+    gene_sets <- gene_sets %>%
+      dplyr::select(gs_name, gene_symbol) %>%
+      dplyr::distinct()
+  } else if (gene_type == "ENSEMBL") {
+    gene_sets <- gene_sets %>%
+      dplyr::select(gs_name, ensembl_gene) %>%
+      dplyr::distinct()
+  } else if (type == "ENTREZID") {
+    gene_sets <- gene_sets %>%
+      dplyr::select(gs_name, ncbi_gene) %>%
+      dplyr::distinct()
+  } else {
+    stop(
+      "Please specify a valid gene identifier. Supported: SYMBOL, ENSEMBL, ENTREZID"
+    )
+  }
+
+  cdata <- BiocGenerics::as.data.frame(SummarizedExperiment::colData(obj)) |>
+    tibble::rownames_to_column("sample_ident")
 
   rankings <- BiocGenerics::counts(obj, normalized = TRUE) %>%
     BiocGenerics::as.data.frame() %>%
     tibble::rownames_to_column("gene") %>%
     tidyr::pivot_longer(-gene) %>%
     dplyr::left_join(
-      BiocGenerics::as.data.frame(SummarizedExperiment::colData(obj)),
-      dplyr::join_by(name == sample)
+      cdata,
+      dplyr::join_by(name == sample_ident)
     ) %>%
     dplyr::mutate(condition = !!condition_var) %>%
     dplyr::filter(condition %in% conditions) %>%
@@ -192,8 +237,3 @@ get.gsea <- function(
 
   return(obj)
 }
-
-## Example
-#
-# dds_3 <- get.gsea(NAME = "KO effect in untreated", obj = dds_2, type = "HALLMARK", conditions = c("ko_untreated", "wt_untreated"))
-# dds_3 <- get.gsea(NAME = "KO effect in untreated", obj = dds_3, type = "REACTOME", conditions = c("ko_untreated", "wt_untreated"))

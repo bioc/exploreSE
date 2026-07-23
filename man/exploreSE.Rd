@@ -15,7 +15,14 @@ exploreSE(file = NULL, object = NULL)
 an application
 }
 \description{
-this runs the explorer app
+This runs the explorer app. You can add a path to a .rds file or a the
+relevant R object as an argument to load it on start-up.
+The app looks for DE results in the metadata of the metadata(object)$de_results
+and, if it is a DeeDeeExperiment, in the DEA slots of the object.
+Similarly, the enrichment results are looked for in the metadata(object)$fe_results
+or FEA slots (DeeDeeExperiment). As the DeeDeeExperiment structure does
+a lot of work to clean and standardize the inputs and outputs for both DE
+and enrichment results, using it is highly recommended.
 }
 \examples{
 app <- exploreSE()

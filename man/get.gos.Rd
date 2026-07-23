@@ -2,25 +2,32 @@
 % Please edit documentation in R/se_utils.R
 \name{get.gos}
 \alias{get.gos}
-\title{Title}
+\title{Calculate GO Enrichments for a given comparison}
 \usage{
-get.gos(NAME, obj = dds, species = "hs", gene_type = "SYMBOL")
+get.gos(NAME, obj, species = "hs", gene_type = "SYMBOL")
 }
 \arguments{
-\item{NAME}{name of the de comparison}
+\item{NAME}{character, name of the DE comparison}
 
-\item{obj}{the object}
+\item{obj}{DeeDeeExperiment or SummarizedExperiment, the object}
 
-\item{species}{the species hs/mm}
+\item{species}{character, the species hs/mm}
 
-\item{gene_type}{the type of gene identifier}
+\item{gene_type}{character, the type of gene identifier}
 }
 \value{
 a DeeDeeExperiment or SummarizedExperiment
 }
 \description{
-Title
+A function to calculate GO term enrichments from a given summarizedExperiment
+or DeeDee experiment. By default, it calculates separate enrichments for
+up- downregulated genes, at the cutoffs of |logFC| > 1 and adjusted p-
+value < 0.05. It utilises the \code{\link[clusterProfiler:enrichGO]{clusterProfiler::enrichGO()}} function.
 }
 \examples{
-TRUE
+data("se_with_des", package = "exploreSE")
+se_with_go <- get.gos(obj = se_with_de,
+                      NAME = "baseline",
+                      gene_type = "ENSEMBL")
+
 }

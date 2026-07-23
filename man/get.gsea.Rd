@@ -2,36 +2,50 @@
 % Please edit documentation in R/se_utils.R
 \name{get.gsea}
 \alias{get.gsea}
-\title{Title}
+\title{Calculate GSEA Enrichments for a given comparison}
 \usage{
 get.gsea(
   NAME,
-  obj = dds,
+  obj,
   type = "HALLMARK",
   conditions,
   species = "hs",
-  condition_var = condition
+  condition_var = "condition",
+  gene_type = "SYMBOL"
 )
 }
 \arguments{
-\item{NAME}{name of the DE comparison}
+\item{NAME}{character, name of the DE comparison}
 
-\item{obj}{the SE/DeeDeeExperiemnt}
+\item{obj}{DeeDeeExperiment or SummarizedExperiment, the object}
 
-\item{type}{hallmark or reactome}
+\item{type}{character, the type of gene set, HALLMARK or REACTOME}
 
-\item{conditions}{which conditions are compared}
+\item{conditions}{a vector of length 2, which levels of the condition variable are being compared,}
 
-\item{species}{what species}
+\item{species}{character, supported values are "hs" and "mm"}
 
-\item{condition_var}{whats the variable name for this comparison}
+\item{condition_var}{symbol or character, the variable name for this comparison}
+
+\item{gene_type}{character, the type of gene identifier}
 }
 \value{
 a DeeDeeExperiment or SummarizedExperiment
 }
 \description{
-Title
+Calculates the GSEA enrichments with the counts within a summarizedExperiment
+or DeeDeeExperiment and adds them in the respective slots. It follows
+the \href{https://www.pnas.org/doi/10.1073/pnas.0506580102}{original signal-to-noise ratio of the method}; other approaches for
+ranking of genes are available in other implementations,
+such as the \code{\link[clusterProfiler:GSEA]{clusterProfiler::GSEA()}} implementation which calls for
+logFC ranked genes.
 }
 \examples{
-TRUE
+data("se_with_des", package = "exploreSE")
+se_with_gsea <- get.gsea(NAME = "baseline",
+                         obj = se_with_de,
+                         type = "HALLMARK",
+                         condition_var = "dex",
+                         conditions = c("trt", "untrt"),
+                         gene_type = "ENSEMBL")
 }

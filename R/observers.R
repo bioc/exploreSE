@@ -1,4 +1,5 @@
 .create_dir_color_observers <- function(input, session, rv) {
+    # nocov start
     shiny::observe({
         # for up
         shiny::updateSelectInput(session, "up_col_1", selected = rv$up_col)
@@ -18,13 +19,17 @@
             selected = rv$highlight_col
         )
     })
+    # nocov end
 
+    # nocov start
+    # up
     shiny::observeEvent(input$up_col_1, {
         rv$up_col <- input$up_col_1
     })
     shiny::observeEvent(input$up_col_2, {
         rv$up_col <- input$up_col_2
     })
+
     #down
     shiny::observeEvent(input$dn_col_1, {
         rv$dn_col <- input$dn_col_1
@@ -39,9 +44,11 @@
     shiny::observeEvent(input$high_col_2, {
         rv$highlight_col <- input$high_col_2
     })
+    # nocov end
 }
 
 .create_interest_color_observers <- function(input, session, rv) {
+    # nocov start
     shiny::observe({
         # color var
         shiny::updateSelectInput(
@@ -69,34 +76,27 @@
         }
     })
 
+    # nocov end
+
+    # nocov start
     shiny::observeEvent(input$color_var_1, {
         rv$color_var <- input$color_var_1
     })
     shiny::observeEvent(input$color_var_2, {
         rv$color_var <- input$color_var_2
     })
-
-    # shiny::observeEvent(rv$color_var, {
-    #   if (!is.null(rv$se)) {
-    #     shiny::updateCheckboxGroupInput(
-    #       session,
-    #       "groups_to_show",
-    #       choices = levels(as.factor(SummarizedExperiment::colData(rv$se)[[
-    #         rv$color_var
-    #       ]])),
-    #       selected = levels(as.factor(SummarizedExperiment::colData(rv$se)[[
-    #         rv$color_var
-    #       ]]))
-    #     )
-    #   }
-    # })
+    # nocov end
 }
 
 .create_rowvar_observer <- function(input, session, rv) {
+    # nocov start
     shiny::observeEvent(input$row_data_var, {
         shiny::req(input$row_data_var)
         rv$row_var <- input$row_data_var
     })
+    # nocov end
+
+    # nocov start
 
     shiny::observeEvent(rv$row_var, {
         if (
@@ -120,21 +120,28 @@
             )
         }
     })
+    # nocov end
 }
 
-.gene_ident_observer <- function(input, session, rv) {}
+# .gene_ident_observer <- function(input, session, rv) {}
 
 .observe_demo_data <- function(input, session, rv) {
+    # nocov start
+
     shiny::observe({
         if (input$use_demo) {
             rv$se <- .create_demo_data()
         }
     })
+    # nocov end
 }
+
 
 .observe_inital_obj <- function(input, session, rv) {
     set_file <- shiny::getShinyOption("set_file_name")
     set_object <- shiny::getShinyOption("set_object")
+
+    # nocov start
 
     shiny::observe({
         shiny::req(set_file)
@@ -149,6 +156,8 @@
         shiny::updateCheckboxInput(session, "use_demo", value = FALSE)
         shiny::showNotification("Data loaded successfully!", type = "message")
     })
+
+    # nocov end
 }
 
 
@@ -159,6 +168,7 @@
     has_precomputed_de,
     de_comparisons
 ) {
+    # nocov start
     shiny::observeEvent(rv$se, {
         shiny::req(rv$se)
 
@@ -235,10 +245,12 @@
             )
         }
     })
+    # nocov end
 }
 
 
 .observe_load_file <- function(input, session, rv) {
+    # nocov start
     shiny::observeEvent(input$se_file, {
         shiny::req(input$se_file)
         tryCatch(
@@ -258,4 +270,5 @@
             }
         )
     })
+    # nocov end
 }

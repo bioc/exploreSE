@@ -34,6 +34,15 @@ ui <- shiny::fluidPage(
                     )
                 ),
             ),
+
+            shiny::conditionalPanel(
+                condition = "input.main_tabs == 'DE Results' | input.main_tabs == 'Volcano Plot' | input.main_tabs == 'Enrichment Results'",
+                shiny::selectInput(
+                    "mock",
+                    "Select Comparison:",
+                    choices = NULL
+                )
+            )
         ),
 
         shiny::mainPanel(
@@ -284,7 +293,7 @@ ui <- shiny::fluidPage(
     )
 )
 
-# Server
+# nocov start
 server <- function(input, output, session) {
     # Increase upload size limit to 500MB
     options(shiny.maxRequestSize = 500 * 1024^2)
@@ -862,14 +871,63 @@ server <- function(input, output, session) {
             })
         })
     })
+
+    # output$fcfc_plot <- plotly::renderPlotly({
+    #     shiny::req(
+    #         de_data,
+    #         input$padj_cutoff_volcano,
+    #         input$lfc_cutoff_volcano,
+    #         rv$up_col,
+    #         rv$dn_col,
+    #         rv$highlight_col
+    #     )
+    #     colors_acute <- c(
+    #         "Up" = rv$up_col,
+    #         "Down" = rv$dn_col,
+    #         "ns" = "grey70",
+    #         "Highlighted" = rv$highlight_col
+    #     )
+
+    #     highlight_vec <- c()
+    #     if (
+    #         !is.null(input$highlight_genes) &&
+    #             nchar(trimws(input$highlight_genes)) > 0
+    #     ) {
+    #         # Split by newlines and commas, trim whitespace
+    #         highlight_vec <- input$highlight_genes %>%
+    #             strsplit("[\n,]") %>%
+    #             unlist() %>%
+    #             trimws() %>%
+    #             .[nchar(.) > 0]
+    #     }
+
+    #     .plot_fcfc(
+    #         RES = de_data,
+    #         NAME = input$de_comparison,
+    #         padj_CO = input$padj_cutoff_volcano,
+    #         fc_CO = input$lfc_cutoff_volcano,
+    #         highlights = highlight_vec,
+    #         COLS = colors_acute,
+    #         LABEL_TOP = input$label_top,
+    #         TOPN = input$n_labels
+    #     )
+    # })
 }
+# nocov end
 
 # Run app
 #' exploreSE
 #'
 #'
 #' @description
-#' this runs the explorer app
+#' This runs the explorer app. You can add a path to a .rds file or a the
+#' relevant R object as an argument to load it on start-up.
+#' The app looks for DE results in the metadata of the metadata(object)$de_results
+#' and, if it is a DeeDeeExperiment, in the DEA slots of the object.
+#' Similarly, the enrichment results are looked for in the metadata(object)$fe_results
+#' or FEA slots (DeeDeeExperiment). As the DeeDeeExperiment structure does
+#' a lot of work to clean and standardize the inputs and outputs for both DE
+#' and enrichment results, using it is highly recommended.
 #'
 #' @param file a string leading to a file you want loaded as a default
 #' @param object a summarizedExperiment object (or DeeDeeExperiment) to load in
