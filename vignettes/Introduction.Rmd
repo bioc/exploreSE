@@ -125,7 +125,7 @@ shiny::runApp(app, port = 1234)
 
 After starting the app, you are created with an overview of the metadata in the `colData` of the relevant `summarizedExperiment`, as well as a search- and scrollable view of the same table. 
 On the left hand side, you can load in a different object from the local environment if desired under the "Data Input header" - should you start up the app without any data, the "Use Demo Data" checkbox will be checked and some demo data will be generated for you. 
-Below that, you will find some options for the your data exploration:
+Below that, you will find some options for the your data exploration throughout the app. Options that are specific to the one panel only are integrated into that panel, but globally relevant options appear in the sidebar as needed.
 You will have your choice of the relevant gene identifier; by default it picks the first column from your `rowData`, but with the drop-down menu that behavior can be changed.
 Secondly, you can pick your differential expression analysis; these come from the relevant slots from the underlying `DeeDeeExperiment` or m̀etdata()`. 
 
