@@ -40,5 +40,9 @@ utils::globalVariables(c(
   "ensembl_gene",
   "ncbi_gene",
   "sample_ident",
-  "gene_ident"
+  "gene_ident",
+  "sig_A",
+  "sig_B",
+  "log2FoldChange_A",
+  "log2FoldChange_B"
 ))

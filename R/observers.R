@@ -1,16 +1,25 @@
-.create_dir_color_observers <- function(input, session, rv) {
-    # nocov start
-    shiny::observeEvent(input$up_col, {
-        rv$up_col <- input$up_col
-    })
-    shiny::observeEvent(input$dn_col, {
-        rv$dn_col <- input$dn_col
-    })
-    shiny::observeEvent(input$high_col, {
-        rv$highlight_col <- input$high_col
-    })
-    # nocov end
-}
+# .create_dir_color_observers <- function(input, session, rv) {
+#     # nocov start
+#     shiny::observeEvent(input$up_col, {
+#         rv$up_col <- input$up_col
+#     })
+#     shiny::observeEvent(input$dn_col, {
+#         rv$dn_col <- input$dn_col
+#     })
+#     shiny::observeEvent(input$high_col, {
+#         rv$highlight_col <- input$high_col
+#     })
+#     shiny::observeEvent(input$both_col, {
+#         rv$both_col <- input$both_col
+#     })
+#     shiny::observeEvent(input$comp1_col, {
+#         rv$comp1_col <- input$comp1_col
+#     })
+#     shiny::observeEvent(input$comp2_col, {
+#         rv$comp2_col <- input$comp2_col
+#     })
+#     # nocov end
+# }
 
 .create_interest_color_observers <- function(input, session, rv) {
     # nocov start
@@ -20,10 +29,10 @@
                 session,
                 "groups_to_show",
                 choices = levels(SummarizedExperiment::colData(rv$se)[[
-                    rv$color_var
+                    input$color_var
                 ]]),
                 selected = levels(SummarizedExperiment::colData(rv$se)[[
-                    rv$color_var
+                    input$color_var
                 ]])
             )
         }
@@ -32,35 +41,33 @@
     # nocov end
 
     # nocov start
-    shiny::observeEvent(input$color_var, {
-        rv$color_var <- input$color_var
-    })
+    # shiny::observeEvent(input$color_var, {
+    #     rv$color_var <- input$color_var
+    # })
     # nocov end
 }
 
 .create_rowvar_observer <- function(input, session, rv) {
     # nocov start
-    shiny::observeEvent(input$row_data_var, {
-        shiny::req(input$row_data_var)
-        rv$row_var <- input$row_data_var
-    })
+    # shiny::observeEvent(input$row_data_var, {
+    #     shiny::req(input$row_data_var)
+    #     rv$row_var <- input$row_data_var
+    # })
     # nocov end
 
     # nocov start
 
-    shiny::observeEvent(rv$row_var, {
+    shiny::observeEvent(input$row_data_var, {
         if (
             !is.null(rv$se) &&
                 !is.null(SummarizedExperiment::rowData(rv$se)) &&
-                rv$row_var %in% colnames(SummarizedExperiment::rowData(rv$se))
+                input$row_data_var %in%
+                    colnames(SummarizedExperiment::rowData(rv$se))
         ) {
             gene_choices <- SummarizedExperiment::rowData(rv$se)[,
-                rv$row_var,
+                input$row_data_var,
                 drop = TRUE
             ]
-            # if ("gene_name" %in% colnames(SummarizedExperiment::rowData(rv$se))) {
-            #   names(gene_choices) <- SummarizedExperiment::rowData(rv$se)$gene_name
-            # }
 
             shinyWidgets::updatePickerInput(
                 session,
@@ -183,6 +190,13 @@
             shiny::updateSelectInput(
                 session,
                 "de_comparison",
+                choices = comparisons,
+                selected = comparisons[1]
+            )
+            #for fcfc
+            shiny::updateSelectInput(
+                session,
+                "comparison_comparison",
                 choices = comparisons,
                 selected = comparisons[1]
             )

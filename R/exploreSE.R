@@ -1,7 +1,7 @@
 # UI
 ui <- shiny::fluidPage(
     shiny::titlePanel("RNA-seq SummarizedExperiment Explorer"),
-
+    # sidebar ----------
     shiny::sidebarLayout(
         shiny::sidebarPanel(
             width = 3,
@@ -25,7 +25,7 @@ ui <- shiny::fluidPage(
             ),
 
             shiny::conditionalPanel(
-                condition = "input.main_tabs == 'Gene Expression' | input.main_tabs == 'Volcano Plot' | input.main_tabs == 'Enrichment Results'",
+                condition = "input.main_tabs == 'Gene Expression' | input.main_tabs == 'Volcano Plot' | input.main_tabs == 'FC FC'",
 
                 shiny::selectInput(
                     "row_data_var",
@@ -35,7 +35,7 @@ ui <- shiny::fluidPage(
             ),
 
             shiny::conditionalPanel(
-                condition = "input.main_tabs == 'DE Results' | input.main_tabs == 'Volcano Plot' | input.main_tabs == 'Enrichment Results'",
+                condition = "input.main_tabs == 'DE Results' | input.main_tabs == 'Volcano Plot' | input.main_tabs == 'Enrichment Results' | input.main_tabs == 'FC FC'",
                 shiny::conditionalPanel(
                     condition = "output.data_loaded",
                     shiny::conditionalPanel(
@@ -46,8 +46,11 @@ ui <- shiny::fluidPage(
                             choices = NULL
                         )
                     ),
-                ),
+                )
+            ),
 
+            shiny::conditionalPanel(
+                condition = "input.main_tabs == 'DE Results' | input.main_tabs == 'Volcano Plot' | input.main_tabs == 'Enrichment Results'",
                 colourpicker::colourInput(
                     "up_col",
                     "Color for Upregulated",
@@ -63,6 +66,24 @@ ui <- shiny::fluidPage(
                     "Color for Highlights",
                     "#FFD700"
                 )
+            ),
+            shiny::conditionalPanel(
+                condition = "input.main_tabs == 'FC FC'",
+                colourpicker::colourInput(
+                    "both_col",
+                    "Color for DE Overlap",
+                    "#ce1ae6"
+                ),
+                colourpicker::colourInput(
+                    "comp1_col",
+                    "Color for DE Comparison 1",
+                    "#0a31db"
+                ),
+                colourpicker::colourInput(
+                    "comp2_col",
+                    "Color for DE Comparison 2",
+                    "#f03405"
+                ),
             )
         ),
 
@@ -70,6 +91,8 @@ ui <- shiny::fluidPage(
             width = 9,
             shiny::tabsetPanel(
                 id = "main_tabs",
+
+                # tab overview ------
                 shiny::tabPanel(
                     "Overview",
                     shiny::h3("Dataset Summary"),
@@ -78,7 +101,7 @@ ui <- shiny::fluidPage(
                     shiny::h4("Sample Metadata"),
                     DT::DTOutput("metadata_table")
                 ),
-
+                # tab PCA ----
                 shiny::tabPanel(
                     "PCA",
                     shiny::h3("Principal Component Analysis"),
@@ -100,7 +123,7 @@ ui <- shiny::fluidPage(
                     shiny::hr(),
                     shiny::verbatimTextOutput("pca_variance")
                 ),
-
+                # tab gene expression ----
                 shiny::tabPanel(
                     "Gene Expression",
                     shiny::h3("Gene Expression Plot"),
@@ -143,7 +166,7 @@ ui <- shiny::fluidPage(
                         "Download Expression Table"
                     )
                 ),
-
+                # tab de res ----------
                 shiny::tabPanel(
                     "DE Results",
                     shiny::h3("Differential Expression Results"),
@@ -164,6 +187,7 @@ ui <- shiny::fluidPage(
                     shiny::downloadButton("download_de", "Download DE Table")
                 ),
 
+                # tab volcano --------
                 shiny::tabPanel(
                     "Volcano Plot",
                     shiny::h3("Volcano Plot"),
@@ -228,7 +252,7 @@ ui <- shiny::fluidPage(
                     shiny::hr(),
                     shiny::h4("Summary Statistics")
                 ),
-
+                # tab enrichment ---
                 shiny::tabPanel(
                     "Enrichment Results",
                     shiny::h3("Enrichment Results"),
@@ -259,6 +283,19 @@ ui <- shiny::fluidPage(
                     shiny::uiOutput("fe_status_message"),
                     shiny::hr(),
                     shiny::uiOutput("enrichment_plots", width = "700px")
+                ),
+                # tab fcfc ------
+                shiny::tabPanel(
+                    "FC FC",
+                    shiny::h3("Fold Change comparisons"),
+                    shiny::fluidRow(),
+                    shiny::selectInput(
+                        "comparison_comparison",
+                        "Select Comparison:",
+                        choices = NULL
+                    ),
+                    shiny::hr(),
+                    plotly::plotlyOutput("fcfc_plot", height = "700px")
                 )
             )
         )
@@ -276,12 +313,16 @@ server <- function(input, output, session) {
         vst_data = NULL,
         pca_result = NULL,
         de_results = NULL,
-        up_col = "#d62728",
-        dn_col = "#1f77b4",
-        highlight_col = "#FFD700",
-        color_var = NULL,
-        row_var = NULL,
-        gene_idents = NULL
+        # up_col = "#d62728",
+        # dn_col = "#1f77b4",
+        # highlight_col = "#FFD700",
+        # both_col = "#ce1ae6",
+        # comp1_col = "#0a31db",
+        # comp2_col = "#f03405",
+        # color_var = NULL,
+        # row_var = NULL,
+        gene_idents = NULL,
+        # second_comparison = NULL
     )
 
     has_precomputed_de <- shiny::reactive({
@@ -295,7 +336,7 @@ server <- function(input, output, session) {
     })
 
     # run observers --------------
-    .create_dir_color_observers(input, session, rv)
+    # .create_dir_color_observers(input, session, rv)
     .create_interest_color_observers(input, session, rv)
     .observe_demo_data(input, session, rv)
     .observe_inital_obj(input, session, rv)
@@ -334,7 +375,7 @@ server <- function(input, output, session) {
 
     # PCA calculation
     pca_data <- shiny::reactive({
-        shiny::req(vst_data(), rv$color_var, input$top_genes)
+        shiny::req(vst_data(), input$color_var, input$top_genes)
 
         vst_mat <- vst_data()
 
@@ -353,7 +394,7 @@ server <- function(input, output, session) {
             PC1 = pca$x[, 1],
             PC2 = pca$x[, 2],
             sample = colnames(rv$se),
-            group = SummarizedExperiment::colData(rv$se)[[rv$color_var]]
+            group = SummarizedExperiment::colData(rv$se)[[input$color_var]]
         )
 
         # Calculate variance explained
@@ -364,13 +405,13 @@ server <- function(input, output, session) {
 
     # Run DE analysis ----------
     shiny::observeEvent(input$run_de, {
-        shiny::req(rv$se, rv$color_var)
+        shiny::req(rv$se, input$color_var)
 
         shiny::withProgress(message = "Running DESeq2...", {
             tryCatch(
                 {
                     # Create DESeq2 object
-                    col_var <- rv$color_var
+                    col_var <- input$color_var
                     design_formula <- stats::as.formula(paste("~", col_var))
                     dds <- DESeq2::DESeqDataSet(rv$se, design = design_formula)
 
@@ -576,7 +617,7 @@ server <- function(input, output, session) {
             ggplot2::labs(
                 x = paste0("PC1 (", var[1], "%)"),
                 y = paste0("PC2 (", var[2], "%)"),
-                color = rv$color_var
+                color = input$color_var
             ) +
             ggplot2::theme_minimal(base_size = 14) +
             ggplot2::theme(legend.position = "right")
@@ -602,25 +643,30 @@ server <- function(input, output, session) {
     })
     ## expression plot-------
     output$expr_plot <- plotly::renderPlotly({
-        shiny::req(rv$se, input$gene_id, rv$color_var)
+        shiny::req(rv$se, input$gene_id, input$color_var)
 
         p <- .plot_expression(
             rv$se,
             input$gene_id,
-            rv$color_var,
+            input$color_var,
             input$groups_to_show,
             input$plot_type,
-            rv$row_var
+            input$row_data_var
         )
         plotly::ggplotly(p)
     })
 
     output$expr_table <- DT::renderDT({
-        shiny::req(rv$se, input$gene_id, input$groups_to_show, rv$row_var)
+        shiny::req(
+            rv$se,
+            input$gene_id,
+            input$groups_to_show,
+            input$row_data_var
+        )
 
         gene <- rownames(SummarizedExperiment::rowData(rv$se)[
             which(
-                SummarizedExperiment::rowData(rv$se)[, rv$row_var] ==
+                SummarizedExperiment::rowData(rv$se)[, input$row_data_var] ==
                     input$gene_id
             ),
         ])[1]
@@ -629,7 +675,7 @@ server <- function(input, output, session) {
             SummarizedExperiment::colData(rv$se),
             Gene = input$gene_id,
             Count = SummarizedExperiment::assay(rv$se, "counts")[gene, ],
-            g_r_o_u_p = SummarizedExperiment::colData(rv$se)[[rv$color_var]]
+            g_r_o_u_p = SummarizedExperiment::colData(rv$se)[[input$color_var]]
         ) %>%
             dplyr::filter(g_r_o_u_p %in% input$groups_to_show) %>%
             dplyr::select(-g_r_o_u_p)
@@ -675,12 +721,11 @@ server <- function(input, output, session) {
     })
 
     output$de_plot <- shiny::renderPlot({
-        # shiny::req(de_data, input$padj_cutoff_volcano, input$lfc_cutoff_volcano, rv$up_col, rv$dn_col, rv$highlight_col)
         colors_acute <- c(
-            "Up" = rv$up_col,
-            "Down" = rv$dn_col,
+            "Up" = input$up_col,
+            "Down" = input$dn_col,
             "NS" = "grey70",
-            "Highlighted" = rv$highlight_col
+            "Highlighted" = input$highlight_col
         )
         de_data <- current_de_results()
 
@@ -712,7 +757,9 @@ server <- function(input, output, session) {
                 SummarizedExperiment::colData(rv$se),
                 Gene = input$gene_id,
                 Count = SummarizedExperiment::assay(rv$se, "counts")[gene, ],
-                g_r_o_u_p = SummarizedExperiment::colData(rv$se)[[rv$color_var]]
+                g_r_o_u_p = SummarizedExperiment::colData(rv$se)[[
+                    input$color_var
+                ]]
             ) %>%
                 dplyr::filter(g_r_o_u_p %in% input$groups_to_show) %>%
                 dplyr::select(-g_r_o_u_p)
@@ -743,18 +790,18 @@ server <- function(input, output, session) {
         de_data <- current_de_results()
         shiny::req(
             de_data,
-            input$padj_cutoff_volcano,
-            input$lfc_cutoff_volcano,
-            rv$up_col,
-            rv$dn_col,
-            rv$highlight_col,
-            rv$row_var
+            # input$padj_cutoff_volcano,
+            # input$lfc_cutoff_volcano,
+            # input$up_col,
+            # input$dn_col,
+            # input$highlight_col,
+            input$row_data_var
         )
         colors_acute <- c(
-            "Up" = rv$up_col,
-            "Down" = rv$dn_col,
+            "Up" = input$up_col,
+            "Down" = input$dn_col,
             "NS" = "grey70",
-            "Highlighted" = rv$highlight_col
+            "Highlighted" = input$highlight_col
         )
 
         highlight_vec <- c()
@@ -787,10 +834,10 @@ server <- function(input, output, session) {
     output$enrichment_plots <- shiny::renderUI({
         current_fes <- current_fe_results()
         colors_acute <- c(
-            "Up" = rv$up_col,
-            "Down" = rv$dn_col,
+            "Up" = input$up_col,
+            "Down" = input$dn_col,
             "NS" = "grey70",
-            "Highlighted" = rv$highlight_col
+            "Highlighted" = input$highlight_col
         )
         shiny::req(
             current_fes,
@@ -814,46 +861,45 @@ server <- function(input, output, session) {
         })
     })
 
-    # output$fcfc_plot <- plotly::renderPlotly({
-    #     shiny::req(
-    #         de_data,
-    #         input$padj_cutoff_volcano,
-    #         input$lfc_cutoff_volcano,
-    #         rv$up_col,
-    #         rv$dn_col,
-    #         rv$highlight_col
-    #     )
-    #     colors_acute <- c(
-    #         "Up" = rv$up_col,
-    #         "Down" = rv$dn_col,
-    #         "ns" = "grey70",
-    #         "Highlighted" = rv$highlight_col
-    #     )
+    output$fcfc_plot <- plotly::renderPlotly({
+        shiny::req(
+            rv$se,
+            input$padj_cutoff_volcano,
+            input$lfc_cutoff_volcano,
+            input$comp1_col,
+            input$comp2_col
+        )
+        colors_acute <- c(
+            "Comp1" = input$comp1_col,
+            "Comp2" = input$comp2_col,
+            "ns" = "grey70",
+            "both" = input$both_col
+        )
 
-    #     highlight_vec <- c()
-    #     if (
-    #         !is.null(input$highlight_genes) &&
-    #             nchar(trimws(input$highlight_genes)) > 0
-    #     ) {
-    #         # Split by newlines and commas, trim whitespace
-    #         highlight_vec <- input$highlight_genes %>%
-    #             strsplit("[\n,]") %>%
-    #             unlist() %>%
-    #             trimws() %>%
-    #             .[nchar(.) > 0]
-    #     }
+        #     highlight_vec <- c()
+        #     if (
+        #         !is.null(input$highlight_genes) &&
+        #             nchar(trimws(input$highlight_genes)) > 0
+        #     ) {
+        #         # Split by newlines and commas, trim whitespace
+        #         highlight_vec <- input$highlight_genes %>%
+        #             strsplit("[\n,]") %>%
+        #             unlist() %>%
+        #             trimws() %>%
+        #             .[nchar(.) > 0]
+        #     }
 
-    #     .plot_fcfc(
-    #         RES = de_data,
-    #         NAME = input$de_comparison,
-    #         padj_CO = input$padj_cutoff_volcano,
-    #         fc_CO = input$lfc_cutoff_volcano,
-    #         highlights = highlight_vec,
-    #         COLS = colors_acute,
-    #         LABEL_TOP = input$label_top,
-    #         TOPN = input$n_labels
-    #     )
-    # })
+        .plot_fcfc(
+            OBJ = rv$se,
+            NAME = input$de_comparison,
+            PARTNER_NAME = input$comparison_comparison,
+            GENE_VAR = input$row_data_var,
+            GENE_VARS = rv$gene_idents,
+            padj_CO = input$padj_cutoff_volcano,
+            fc_CO = input$lfc_cutoff_volcano,
+            COLS = colors_acute
+        )
+    })
 }
 # nocov end
 

@@ -151,10 +151,6 @@
         axis.title.y = ggplot2::element_blank(),
         legend.position = "none"
       )
-
-    p_p <- plotly::ggplotly(p, tooltip = c("text")) %>%
-      plotly::layout(hovermode = "closest") %>%
-      plotly::style(textposition = "right")
   } else {
     # this can probably go, when the DeeDee devel branch hits main, but for now needs to stay
     filter_col <- dplyr::case_when(
@@ -219,10 +215,6 @@
           axis.title.y = ggplot2::element_blank(),
           legend.position = "none"
         )
-
-      p_p <- plotly::ggplotly(p, tooltip = c("text")) %>%
-        plotly::layout(hovermode = "closest") %>%
-        plotly::style(textposition = "right")
     } else {
       df <- FE %>%
         dplyr::filter(!!rlang::sym(padj_col) < padj_CO) %>%
@@ -261,12 +253,11 @@
           axis.title.y = ggplot2::element_blank(),
           legend.position = "none"
         )
-
-      p_p <- plotly::ggplotly(p, tooltip = c("text")) %>%
-        plotly::layout(hovermode = "closest") %>%
-        plotly::style(textposition = "right")
     }
   }
+  p_p <- plotly::ggplotly(p, tooltip = c("text")) %>%
+    plotly::layout(hovermode = "closest") %>%
+    plotly::style(textposition = "right")
   return(p_p)
 }
 #' plots a volcano plot, highlights selected genes.
@@ -510,84 +501,99 @@
 
 #' creates fc-fc plots
 #' @noRd
-# .plot_fcfc <- function(
-#   OBJ,
-#   NAME,
-#   PARTNER_NAME,
-#   padj_CO = 0.05,
-#   fc_CO = 1,
-#   highlights = NULL,
-#   COLS = rev(c("red", "blue", "purple", "grey")),
-#   LABEL_TOP = TRUE,
-#   TOPN = 5
-# ) {
-#   df_a <- .de_result(OBJ, NAME = NAME) |>
-#     tibble::rownames_to_column("gene_id")
+.plot_fcfc <- function(
+  OBJ,
+  NAME,
+  PARTNER_NAME,
+  GENE_VAR = "SYMBOL",
+  GENE_VARS = c("SYMBOL"),
+  padj_CO = 0.05,
+  fc_CO = 1,
+  COLS = rev(c("red", "blue", "purple", "grey")),
+  LABEL_TOP = TRUE,
+  TOPN = 5
+) {
+  COLS <- COLS |>
+    purrr::set_names(c(NAME, PARTNER_NAME, "ns", "both"))
+  gene_var <- rlang::sym(GENE_VAR)
 
-#   df_b <- .de_result(OBJ, NAME = PARTNER_NAME) |>
-#     tibble::rownames_to_column("gene_id")
+  df_a <- .de_result(OBJ, NAME = NAME) |>
+    tibble::rownames_to_column("gene_ident")
 
-#   df_list <- list(df_a, df_b) |>
-#     purrr::set_names(c(NAME, PARTNER_NAME)) |>
-#     purrr::map(\(x) {
-#       dplyr::filter(
-#         x,
-#         !is.na(padj),
-#         !is.na(log2FoldChange),
-#         !is.infinite(log2FoldChange)
-#       )
-#     }) |>
-#     purrr::imap(\(DF, .NAME) {
-#       dplyr::mutate(
-#         DF,
-#         sig = ifelse(padj < padj_CO & abs(log2FoldChange) > fc_CO, .NAME, "ns")
-#       )
-#     })
+  df_b <- .de_result(OBJ, NAME = PARTNER_NAME) |>
+    tibble::rownames_to_column("gene_ident")
 
-#   df_comb <- dplyr::left_join(
-#     df_list[[NAME]],
-#     df_list[[PARTNER_NAME]],
-#     by = dplyr::join_by(gene_id == gene_id),
-#     suffix = paste0("_", c("A", "B"))
-#   ) |>
-#     dplyr::mutate(
-#       sig = dplyr::case_when(
-#         sig_A == "ns" & sig_B == "ns" ~ "ns",
-#         sig_A == NAME & sig_B == PARTNER_NAME ~ "both",
-#         sig_A == "ns" ~ PARTNER_NAME,
-#         sig_B == "ns" ~ NAME
-#       ) |>
-#         forcats::fct_relevel(NAME, PARTNER_NAME, "both") |>
-#         forcats::fct_rev()
-#     ) |>
-#     dplyr::select(-sig_A, -sig_B) |>
-#     dplyr::filter(!is.na(sig))
+  df_list <- list(df_a, df_b) |>
+    purrr::set_names(c(NAME, PARTNER_NAME)) |>
+    purrr::map(\(x) {
+      dplyr::filter(
+        x,
+        !is.na(padj),
+        !is.na(log2FoldChange),
+        !is.infinite(log2FoldChange)
+      )
+    }) |>
+    purrr::imap(\(DF, .NAME) {
+      dplyr::mutate(
+        DF,
+        sig = ifelse(padj < padj_CO & abs(log2FoldChange) > fc_CO, .NAME, "ns")
+      )
+    })
 
-#   p <- ggplot2::ggplot(
-#     df_comb,
-#     ggplot2::aes(
-#       log2FoldChange_A,
-#       log2FoldChange_B,
-#       color = sig,
-#       text = paste(
-#         "Gene:",
-#         gene_id,
-#         "\n",
-#         paste("logFC", NAME),
-#         round(log2FoldChange_A, 2),
-#         "\n",
-#         paste("logFC", PARTNER_NAME),
-#         round(log2FoldChange_B, 2)
-#       )
-#     )
-#   ) +
-#     ggplot2::geom_point() +
-#     ggplot2::scale_color_manual(values = COLS) +
-#     ggplot2::labs(
-#       x = paste("logFC", NAME),
-#       y = paste("logFC", PARTNER_NAME),
-#       color = "Signficant in:"
-#     )
+  df_comb <- dplyr::left_join(
+    df_list[[NAME]],
+    df_list[[PARTNER_NAME]],
+    by = dplyr::join_by(gene_ident),
+    suffix = paste0("_", c("A", "B"))
+  ) |>
+    dplyr::mutate(
+      sig = dplyr::case_when(
+        sig_A == "ns" & sig_B == "ns" ~ "ns",
+        sig_A == NAME & sig_B == PARTNER_NAME ~ "both",
+        sig_A == "ns" ~ PARTNER_NAME,
+        sig_B == "ns" ~ NAME
+      ) |>
+        forcats::fct_relevel("ns", "both", PARTNER_NAME)
+    ) |>
+    dplyr::select(-sig_A, -sig_B) |>
+    dplyr::filter(!is.na(sig))
 
-#   return(p)
-# }
+  merging_data <- SummarizedExperiment::rowData(OBJ) |>
+    as.data.frame() |>
+    dplyr::select(tidyselect::any_of(GENE_VARS)) |>
+    tibble::rownames_to_column("gene_ident")
+
+  df_comb <- merging_data |>
+    dplyr::inner_join(df_comb, by = dplyr::join_by(gene_ident)) |>
+    dplyr::mutate(gene_id = !!gene_var)
+
+  p <- ggplot2::ggplot(
+    df_comb,
+    ggplot2::aes(
+      log2FoldChange_A,
+      log2FoldChange_B,
+      color = sig,
+      text = paste(
+        "Gene:",
+        gene_id,
+        "\n",
+        paste("logFC", NAME),
+        round(log2FoldChange_A, 2),
+        "\n",
+        paste("logFC", PARTNER_NAME),
+        round(log2FoldChange_B, 2)
+      )
+    )
+  ) +
+    ggplot2::geom_point() +
+    ggplot2::scale_color_manual(values = COLS) +
+    ggplot2::labs(
+      x = paste("logFC", NAME),
+      y = paste("logFC", PARTNER_NAME),
+      color = "Signficant in:"
+    ) +
+    ggplot2::theme_minimal(base_size = 14)
+
+  p <- plotly::ggplotly(p, tooltip = c("text"))
+  return(p)
+}
