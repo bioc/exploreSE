@@ -281,7 +281,7 @@
   LABEL_TOP = TRUE,
   TOPN = 5
 ) {
-  # Prepare data
+  # Prep data
   volcano_df <- RES %>%
     dplyr::filter(
       !is.na(padj) & !is.na(log2FoldChange) & !is.infinite(log2FoldChange)
@@ -301,7 +301,7 @@
       )
     )
 
-  # Identify top genes to label (excluding highlighted genes since they'll be labeled anyway)
+  # Identify top genes
   genes_to_label <- data.frame()
   if (LABEL_TOP && TOPN > 0) {
     top_genes <- volcano_df %>%
@@ -311,18 +311,18 @@
     genes_to_label <- rbind(genes_to_label, top_genes)
   }
 
-  # Always label highlighted genes
+  # highlighted genes
   if (length(highlights) > 0) {
     highlighted_genes <- volcano_df %>%
       dplyr::filter(highlighted)
     genes_to_label <- rbind(genes_to_label, highlighted_genes)
   }
 
-  # Reorder so highlighted genes are plotted on top
+  # Reorder for plotly
   volcano_df <- volcano_df %>%
     dplyr::arrange(highlighted)
 
-  # Create plot
+  #  plot
   p <- ggplot2::ggplot(
     volcano_df,
     ggplot2::aes(
@@ -403,6 +403,69 @@
 
   return(p_p)
 }
+
+#' creates the expression plot; still needs work re: normalisation of counts
+#' @noRd
+.plot_expression <- function(SE, GENE, BY, LEVELS, PLOT_TYPE, GENE_VAR) {
+  # get the right row to plot
+  gene <- rownames(SummarizedExperiment::rowData(SE)[
+    which(
+      SummarizedExperiment::rowData(SE)[, GENE_VAR] == GENE
+    ),
+  ])[1]
+
+  if ("counts" %notin% SummarizedExperiment::assayNames(SE)) {
+    message("counts not found in assays, defaulting to first assay")
+    counts_data <- SummarizedExperiment::assay(SE)[[1]][gene, ]
+  } else if ("sizeFactor" %in% names(SummarizedExperiment::colData(SE))) {
+    counts_data <- SummarizedExperiment::assay(SE, "counts")
+    sf <- SummarizedExperiment::colData(SE)[, "sizeFactor"]
+    counts_data <- sweep(counts_data, 2, sf, "/")[gene, ]
+  } else {
+    counts_data <- SummarizedExperiment::assay(SE, "counts")[gene, ]
+  }
+
+  plot_df <- data.frame(
+    s_a_m_p_l_e = colnames(SE),
+    expression = counts_data,
+    group = forcats::as_factor(SummarizedExperiment::colData(SE)[[
+      BY
+    ]])
+  ) %>%
+    dplyr::filter(group %in% LEVELS)
+
+  p <- ggplot2::ggplot(
+    plot_df,
+    ggplot2::aes(
+      x = group,
+      y = expression,
+      fill = group,
+      text = s_a_m_p_l_e
+    )
+  ) +
+    ggplot2::labs(
+      title = paste("Expression:", GENE),
+      x = BY,
+      y = "Counts"
+    ) +
+    ggplot2::scale_x_discrete(labels = \(x) {
+      stringr::str_wrap(stringr::str_replace_all(x, "_", " "), 10)
+    }) +
+    ggplot2::theme_minimal(base_size = 14) +
+    ggplot2::theme(legend.position = "none")
+
+  if (PLOT_TYPE == "box") {
+    p <- p +
+      ggplot2::geom_boxplot(alpha = 0.7) +
+      ggplot2::geom_jitter(width = 0.2, alpha = 0.5, size = 2)
+  } else {
+    p <- p +
+      ggplot2::geom_violin(alpha = 0.7) +
+      ggplot2::geom_jitter(width = 0.1, alpha = 0.5, size = 2)
+  }
+}
+
+
 #' Creates some random data tio demonstrate the colData, PCA and expression elements.
 #' @noRd
 .create_demo_data <- function() {

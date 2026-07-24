@@ -283,7 +283,8 @@ server <- function(input, output, session) {
         dn_col = "#1f77b4",
         highlight_col = "#FFD700",
         color_var = NULL,
-        row_var = NULL
+        row_var = NULL,
+        gene_idents = NULL
     )
 
     has_precomputed_de <- shiny::reactive({
@@ -410,7 +411,14 @@ server <- function(input, output, session) {
             # Load precomputed results
 
             de_res <- .de_result(rv$se, input$de_comparison) %>%
-                tibble::rownames_to_column("gene_id")
+                tibble::rownames_to_column("gene_ident")
+
+            merging_data <- SummarizedExperiment::rowData(rv$se) |>
+                as.data.frame() |>
+                dplyr::select(tidyselect::any_of(rv$gene_idents)) |>
+                tibble::rownames_to_column("gene_ident")
+            de_res <- merging_data |>
+                dplyr::left_join(de_res, by = dplyr::join_by(gene_ident))
             return(de_res)
         } else if (!is.null(rv$de_results)) {
             # Use computed results
@@ -599,56 +607,65 @@ server <- function(input, output, session) {
     output$expr_plot <- plotly::renderPlotly({
         shiny::req(rv$se, input$gene_id, rv$color_var)
 
-        gene <- rownames(SummarizedExperiment::rowData(rv$se)[
-            which(
-                SummarizedExperiment::rowData(rv$se)[, rv$row_var] ==
-                    input$gene_id
-            ),
-        ])[1]
-        counts_data <- SummarizedExperiment::assay(rv$se, "counts")[gene, ]
-
-        plot_df <- data.frame(
-            s_a_m_p_l_e = colnames(rv$se),
-            expression = counts_data,
-            group = forcats::as_factor(SummarizedExperiment::colData(rv$se)[[
-                rv$color_var
-            ]])
-        ) %>%
-            dplyr::filter(group %in% input$groups_to_show)
-
-        gene_label <- input$gene_id
-
-        p <- ggplot2::ggplot(
-            plot_df,
-            ggplot2::aes(
-                x = group,
-                y = expression,
-                fill = group,
-                text = s_a_m_p_l_e
-            )
-        ) +
-            ggplot2::labs(
-                title = paste("Expression:", gene_label),
-                x = rv$color_var,
-                y = "Normalized Counts"
-            ) +
-            ggplot2::scale_x_discrete(labels = \(x) {
-                stringr::str_wrap(stringr::str_replace_all(x, "_", " "), 10)
-            }) +
-            ggplot2::theme_minimal(base_size = 14) +
-            ggplot2::theme(legend.position = "none")
-
-        if (input$plot_type == "box") {
-            p <- p +
-                ggplot2::geom_boxplot(alpha = 0.7) +
-                ggplot2::geom_jitter(width = 0.2, alpha = 0.5, size = 2)
-        } else {
-            p <- p +
-                ggplot2::geom_violin(alpha = 0.7) +
-                ggplot2::geom_jitter(width = 0.1, alpha = 0.5, size = 2)
-        }
-
+        p <- .plot_expression(
+            rv$se,
+            input$gene_id,
+            rv$color_var,
+            input$groups_to_show,
+            input$plot_type,
+            rv$row_var
+        )
         plotly::ggplotly(p)
+        # gene <- rownames(SummarizedExperiment::rowData(rv$se)[
+        #     which(
+        #         SummarizedExperiment::rowData(rv$se)[, rv$row_var] ==
+        #             input$gene_id
+        #     ),
+        # ])[1]
+        # counts_data <- SummarizedExperiment::assay(rv$se, "counts")[gene, ]
+
+        # plot_df <- data.frame(
+        #     s_a_m_p_l_e = colnames(rv$se),
+        #     expression = counts_data,
+        #     group = forcats::as_factor(SummarizedExperiment::colData(rv$se)[[
+        #         rv$color_var
+        #     ]])
+        # ) %>%
+        #     dplyr::filter(group %in% input$groups_to_show)
+
+        # gene_label <- input$gene_id
+
+        # p <- ggplot2::ggplot(
+        #     plot_df,
+        #     ggplot2::aes(
+        #         x = group,
+        #         y = expression,
+        #         fill = group,
+        #         text = s_a_m_p_l_e
+        #     )
+        # ) +
+        #     ggplot2::labs(
+        #         title = paste("Expression:", gene_label),
+        #         x = rv$color_var,
+        #         y = "Normalized Counts"
+        #     ) +
+        #     ggplot2::scale_x_discrete(labels = \(x) {
+        #         stringr::str_wrap(stringr::str_replace_all(x, "_", " "), 10)
+        #     }) +
+        #     ggplot2::theme_minimal(base_size = 14) +
+        #     ggplot2::theme(legend.position = "none")
+
+        # if (input$plot_type == "box") {
+        #     p <- p +
+        #         ggplot2::geom_boxplot(alpha = 0.7) +
+        #         ggplot2::geom_jitter(width = 0.2, alpha = 0.5, size = 2)
+        # } else {
+        #     p <- p +
+        #         ggplot2::geom_violin(alpha = 0.7) +
+        #         ggplot2::geom_jitter(width = 0.1, alpha = 0.5, size = 2)
+        # }
+
+        # plotly::ggplotly(p)
     })
 
     output$expr_table <- DT::renderDT({
@@ -683,7 +700,8 @@ server <- function(input, output, session) {
         de_data <- dplyr::select(
             de_data,
             tidyselect::any_of(c(
-                "gene_id",
+                "gene_ident",
+                rv$gene_idents,
                 "baseMean",
                 "log2FoldChange",
                 "pvalue",

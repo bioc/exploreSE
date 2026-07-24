@@ -39,5 +39,6 @@ utils::globalVariables(c(
   "direction",
   "ensembl_gene",
   "ncbi_gene",
-  "sample_ident"
+  "sample_ident",
+  "gene_ident"
 ))

@@ -122,11 +122,21 @@
     shiny::observeEvent(rv$se, {
         shiny::req(rv$se)
 
-        # Update grouping variable choices
         col_vars <- colnames(SummarizedExperiment::colData(rv$se))
-        row_vars <- colnames(SummarizedExperiment::rowData(rv$se))
 
-        # Set default to "condition" if it exists, otherwise first column
+        row_vars <- SummarizedExperiment::rowData(rv$se) |>
+            as.data.frame() |>
+            dplyr::select(
+                tidyselect::where(is.character),
+                tidyselect::contains("id"),
+                tidyselect::contains("entrez")
+            ) |>
+            dplyr::select(tidyselect::where(\(x) {
+                !all(is.na(x)) & dplyr::n_distinct(x, na.rm = TRUE) > 1
+            })) |>
+            names()
+        rv$gene_idents <- row_vars
+
         default_col_var <- if ("condition" %in% col_vars) {
             "condition"
         } else {
@@ -159,9 +169,6 @@
             default_row_var,
             drop = TRUE
         ]
-        # if ("gene_name" %in% colnames(SummarizedExperiment::rowData(rv$se))) {
-        #   names(gene_choices) <- SummarizedExperiment::rowData(rv$se)$gene_name
-        # }
 
         shinyWidgets::updatePickerInput(
             session,
