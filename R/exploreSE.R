@@ -17,14 +17,11 @@ ui <- shiny::fluidPage(
 
             shiny::conditionalPanel(
                 condition = "input.main_tabs == 'PCA' | input.main_tabs == 'Gene Expression'",
-                shiny::column(
-                    3,
-                    shiny::selectInput(
-                        "color_var",
-                        "Color/Group by:",
-                        choices = NULL
-                    ),
-                )
+                shiny::selectInput(
+                    "color_var",
+                    "Color/Group by:",
+                    choices = NULL
+                ),
             ),
 
             shiny::conditionalPanel(
@@ -273,7 +270,7 @@ server <- function(input, output, session) {
     # Increase upload size limit to 500MB
     options(shiny.maxRequestSize = 500 * 1024^2)
 
-    # Reactive values
+    # Reactive values --------
     rv <- shiny::reactiveValues(
         se = NULL,
         vst_data = NULL,
@@ -616,56 +613,6 @@ server <- function(input, output, session) {
             rv$row_var
         )
         plotly::ggplotly(p)
-        # gene <- rownames(SummarizedExperiment::rowData(rv$se)[
-        #     which(
-        #         SummarizedExperiment::rowData(rv$se)[, rv$row_var] ==
-        #             input$gene_id
-        #     ),
-        # ])[1]
-        # counts_data <- SummarizedExperiment::assay(rv$se, "counts")[gene, ]
-
-        # plot_df <- data.frame(
-        #     s_a_m_p_l_e = colnames(rv$se),
-        #     expression = counts_data,
-        #     group = forcats::as_factor(SummarizedExperiment::colData(rv$se)[[
-        #         rv$color_var
-        #     ]])
-        # ) %>%
-        #     dplyr::filter(group %in% input$groups_to_show)
-
-        # gene_label <- input$gene_id
-
-        # p <- ggplot2::ggplot(
-        #     plot_df,
-        #     ggplot2::aes(
-        #         x = group,
-        #         y = expression,
-        #         fill = group,
-        #         text = s_a_m_p_l_e
-        #     )
-        # ) +
-        #     ggplot2::labs(
-        #         title = paste("Expression:", gene_label),
-        #         x = rv$color_var,
-        #         y = "Normalized Counts"
-        #     ) +
-        #     ggplot2::scale_x_discrete(labels = \(x) {
-        #         stringr::str_wrap(stringr::str_replace_all(x, "_", " "), 10)
-        #     }) +
-        #     ggplot2::theme_minimal(base_size = 14) +
-        #     ggplot2::theme(legend.position = "none")
-
-        # if (input$plot_type == "box") {
-        #     p <- p +
-        #         ggplot2::geom_boxplot(alpha = 0.7) +
-        #         ggplot2::geom_jitter(width = 0.2, alpha = 0.5, size = 2)
-        # } else {
-        #     p <- p +
-        #         ggplot2::geom_violin(alpha = 0.7) +
-        #         ggplot2::geom_jitter(width = 0.1, alpha = 0.5, size = 2)
-        # }
-
-        # plotly::ggplotly(p)
     })
 
     output$expr_table <- DT::renderDT({
@@ -800,7 +747,8 @@ server <- function(input, output, session) {
             input$lfc_cutoff_volcano,
             rv$up_col,
             rv$dn_col,
-            rv$highlight_col
+            rv$highlight_col,
+            rv$row_var
         )
         colors_acute <- c(
             "Up" = rv$up_col,
@@ -830,7 +778,8 @@ server <- function(input, output, session) {
             highlights = highlight_vec,
             COLS = colors_acute,
             LABEL_TOP = input$label_top,
-            TOPN = input$n_labels
+            TOPN = input$n_labels,
+            gene_var = input$row_data_var
         )
     })
 

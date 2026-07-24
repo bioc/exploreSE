@@ -279,13 +279,16 @@
   highlights = NULL,
   COLS,
   LABEL_TOP = TRUE,
-  TOPN = 5
+  TOPN = 5,
+  gene_var = "gene_id"
 ) {
+  gene_var <- rlang::sym(gene_var)
   # Prep data
   volcano_df <- RES %>%
     dplyr::filter(
       !is.na(padj) & !is.na(log2FoldChange) & !is.infinite(log2FoldChange)
     ) %>%
+    dplyr::mutate(gene_id = !!gene_var) %>%
     dplyr::mutate(
       highlighted = gene_id %in% highlights,
       sig = dplyr::case_when(
