@@ -8,6 +8,18 @@
 ## on the package's own logic: which genes get classified as up/down/universe,
 ## how the GSEA ranking statistic is computed, and how results get attached
 ## to the returned object.
+##
+## Where possible, the input object is the package's own bundled real-world
+## DeeDeeExperiment (se_with_de) rather than a synthetic fixture - the
+## expected gene sets/ranking direction below are computed independently
+## from that real data rather than hand-picked. Two edge cases aren't
+## naturally present in se_with_de (a comparison with zero significant genes
+## in one direction; a colData column literally named "condition", to
+## exercise get.gsea()'s default condition_var), so those two tests still
+## use small hand-built fixtures.
+
+data("se_with_des", package = "exploreSE")
+se_de <- se_with_de
 
 make_de_se <- function(res_df) {
   se <- SummarizedExperiment::SummarizedExperiment(
@@ -23,12 +35,10 @@ make_de_se <- function(res_df) {
 }
 
 test_that("get.gos classifies up/down/universe genes and forwards them to enrichGO()", {
-  res_df <- data.frame(
-    padj = c(0.001, 0.001, 0.5, 0.001, NA),
-    log2FoldChange = c(3, -3, 0.1, 3, 5),
-    row.names = c("UP1", "DOWN1", "NS1", "UP2", "NA_GENE")
-  )
-  se <- make_de_se(res_df)
+  res <- .de_result(se_de, "baseline")
+  up_expected <- rownames(res)[which(res$padj < 0.05 & res$log2FoldChange > 1)]
+  dn_expected <- rownames(res)[which(res$padj < 0.05 & res$log2FoldChange < -1)]
+  universe_expected <- rownames(res)[which(!is.na(res$padj))]
 
   enrichGO_calls <- list()
   testthat::local_mocked_bindings(
@@ -64,28 +74,28 @@ test_that("get.gos classifies up/down/universe genes and forwards them to enrich
     .package = "DeeDeeExperiment"
   )
 
-  result <- get.gos("comparisonA", obj = se, species = "hs", gene_type = "SYMBOL")
+  result <- get.gos("baseline", obj = se_de, species = "hs", gene_type = "ENSEMBL")
 
   expect_true(methods::is(result, "DeeDeeExperiment"))
 
   # up/down classification is based on padj < 0.05 & |log2FC| > 1, NAs excluded
-  up_calls <- Filter(function(x) setequal(x$gene, c("UP1", "UP2")), enrichGO_calls)
-  dn_calls <- Filter(function(x) setequal(x$gene, "DOWN1"), enrichGO_calls)
+  up_calls <- Filter(function(x) setequal(x$gene, up_expected), enrichGO_calls)
+  dn_calls <- Filter(function(x) setequal(x$gene, dn_expected), enrichGO_calls)
   expect_true(length(up_calls) > 0)
   expect_true(length(dn_calls) > 0)
 
   # universe excludes genes with NA padj
   expect_true(all(vapply(
     enrichGO_calls,
-    function(x) setequal(x$universe, c("UP1", "DOWN1", "NS1", "UP2")),
+    function(x) setequal(x$universe, universe_expected),
     logical(1)
   )))
 
-  expect_true(all(vapply(enrichGO_calls, function(x) x$keyType == "SYMBOL", logical(1))))
+  expect_true(all(vapply(enrichGO_calls, function(x) x$keyType == "ENSEMBL", logical(1))))
   expect_true(all(vapply(enrichGO_calls, function(x) x$ont == "BP", logical(1))))
 
   expect_equal(length(addFEA_calls), 2)
-  expect_true(all(vapply(addFEA_calls, function(x) x$name == "comparisonA", logical(1))))
+  expect_true(all(vapply(addFEA_calls, function(x) x$name == "baseline", logical(1))))
 
   expect_equal(
     vapply(renameFEA_calls, function(x) x$old_name, character(1)),
@@ -93,11 +103,13 @@ test_that("get.gos classifies up/down/universe genes and forwards them to enrich
   )
   expect_equal(
     vapply(renameFEA_calls, function(x) x$new_name, character(1)),
-    c("comparisonA_up_go", "comparisonA_down_go")
+    c("baseline_up_go", "baseline_down_go")
   )
 })
 
 test_that("get.gos skips addFEA/renameFEA when a direction has no significant genes", {
+  # se_de has significant genes in both directions for every comparison, so
+  # this edge case needs a hand-built comparison with only one direction hit.
   res_df <- data.frame(
     padj = c(0.001, 0.9),
     log2FoldChange = c(3, 0.1),
@@ -131,35 +143,7 @@ test_that("get.gos skips addFEA/renameFEA when a direction has no significant ge
   expect_equal(length(addFEA_calls), 1)
 })
 
-make_dds_fixture <- function() {
-  counts <- matrix(
-    c(
-      # GENE1: clearly higher in groupA
-      100, 110, 90, 10, 12, 8,
-      # GENE2: clearly higher in groupB
-      10, 12, 8, 100, 110, 90,
-      # GENE3: similar in both groups
-      50, 52, 48, 50, 51, 49
-    ),
-    nrow = 3,
-    byrow = TRUE
-  )
-  rownames(counts) <- paste0("GENE", 1:3)
-  colnames(counts) <- paste0("S", 1:6)
-
-  coldata <- data.frame(
-    sample = colnames(counts),
-    condition = factor(rep(c("groupA", "groupB"), each = 3)),
-    row.names = colnames(counts)
-  )
-
-  dds <- DESeq2::DESeqDataSetFromMatrix(counts, coldata, design = ~condition)
-  DESeq2::estimateSizeFactors(dds)
-}
-
 test_that("get.gsea builds a descending gene ranking and forwards it to GSEA()", {
-  dds <- make_dds_fixture()
-
   msigdbr_calls <- list()
   testthat::local_mocked_bindings(
     msigdbr = function(collection, db_species, ...) {
@@ -167,10 +151,7 @@ test_that("get.gsea builds a descending gene ranking and forwards it to GSEA()",
         collection = collection,
         db_species = db_species
       )
-      data.frame(
-        gs_name = c("SET_A", "SET_A", "SET_B"),
-        gene_symbol = c("GENE1", "GENE2", "GENE3")
-      )
+      data.frame(gs_name = "SET_A", gene_symbol = "GENE1")
     },
     .package = "msigdbr"
   )
@@ -205,12 +186,12 @@ test_that("get.gsea builds a descending gene ranking and forwards it to GSEA()",
   )
 
   result <- get.gsea(
-    NAME = "comparisonA",
-    obj = dds,
+    NAME = "baseline",
+    obj = se_de,
     type = "HALLMARK",
-    conditions = c("groupA", "groupB"),
+    conditions = c("trt", "untrt"),
     species = "hs",
-    condition_var = "condition"
+    condition_var = "dex"
   )
 
   expect_true(methods::is(result, "DeeDeeExperiment"))
@@ -224,20 +205,32 @@ test_that("get.gsea builds a descending gene ranking and forwards it to GSEA()",
 
   expect_true(is.numeric(rankings))
   expect_true(!is.null(names(rankings)))
-  # groupA = "group1", groupB = "group2" -> ranking = group1 - group2, scaled
-  expect_true(rankings[["GENE1"]] > rankings[["GENE2"]])
   # results are returned sorted from most to least "up"
   expect_true(all(diff(rankings) <= 0))
 
+  # Cross-check the ranking direction against a plain, independently
+  # computed mean-expression comparison (not the package's sd-scaled
+  # formula) for the most extreme gene at each end of the ranking.
+  counts_norm <- BiocGenerics::counts(se_de, normalized = TRUE)
+  dex <- SummarizedExperiment::colData(se_de)$dex
+  top_gene <- names(rankings)[1]
+  bottom_gene <- names(rankings)[length(rankings)]
+  expect_gt(
+    mean(counts_norm[top_gene, dex == "trt"]),
+    mean(counts_norm[top_gene, dex == "untrt"])
+  )
+  expect_gt(
+    mean(counts_norm[bottom_gene, dex == "untrt"]),
+    mean(counts_norm[bottom_gene, dex == "trt"])
+  )
+
   expect_equal(length(addFEA_calls), 1)
-  expect_equal(addFEA_calls[[1]]$name, "comparisonA")
+  expect_equal(addFEA_calls[[1]]$name, "baseline")
   expect_equal(renameFEA_calls[[1]]$old_name, "gsea")
-  expect_equal(renameFEA_calls[[1]]$new_name, "comparisonA_gsea_HALLMARK")
+  expect_equal(renameFEA_calls[[1]]$new_name, "baseline_gsea_HALLMARK")
 })
 
 test_that("get.gsea requests the Reactome collection for type = 'REACTOME'", {
-  dds <- make_dds_fixture()
-
   msigdbr_calls <- list()
   testthat::local_mocked_bindings(
     msigdbr = function(collection, subcollection = NULL, db_species, ...) {
@@ -261,12 +254,12 @@ test_that("get.gsea requests the Reactome collection for type = 'REACTOME'", {
   )
 
   get.gsea(
-    NAME = "comparisonA",
-    obj = dds,
+    NAME = "baseline",
+    obj = se_de,
     type = "REACTOME",
-    conditions = c("groupA", "groupB"),
+    conditions = c("trt", "untrt"),
     species = "mm",
-    condition_var = "condition"
+    condition_var = "dex"
   )
 
   expect_equal(msigdbr_calls[[1]]$collection, "C2")
@@ -275,7 +268,27 @@ test_that("get.gsea requests the Reactome collection for type = 'REACTOME'", {
 })
 
 test_that("get.gsea's default condition_var works without being supplied explicitly", {
-  dds <- make_dds_fixture()
+  # se_de's grouping column is called "dex", not "condition" - this test is
+  # specifically about the literal default value, so it needs an object with
+  # a colData column named "condition".
+  counts <- matrix(
+    c(
+      100, 110, 90, 10, 12, 8,
+      10, 12, 8, 100, 110, 90,
+      50, 52, 48, 50, 51, 49
+    ),
+    nrow = 3,
+    byrow = TRUE
+  )
+  rownames(counts) <- paste0("GENE", 1:3)
+  colnames(counts) <- paste0("S", 1:6)
+  coldata <- data.frame(
+    sample = colnames(counts),
+    condition = factor(rep(c("groupA", "groupB"), each = 3)),
+    row.names = colnames(counts)
+  )
+  dds <- DESeq2::DESeqDataSetFromMatrix(counts, coldata, design = ~condition)
+  dds <- DESeq2::estimateSizeFactors(dds)
 
   testthat::local_mocked_bindings(
     msigdbr = function(...) data.frame(gs_name = "SET_A", gene_symbol = "GENE1"),
@@ -311,8 +324,6 @@ test_that("get.gsea's default condition_var works without being supplied explici
 })
 
 test_that("get.gsea accepts condition_var as either a bare symbol or a string", {
-  dds <- make_dds_fixture()
-
   testthat::local_mocked_bindings(
     msigdbr = function(...) data.frame(gs_name = "SET_A", gene_symbol = "GENE1"),
     .package = "msigdbr"
@@ -333,22 +344,22 @@ test_that("get.gsea accepts condition_var as either a bare symbol or a string", 
 
   expect_no_error(
     get.gsea(
-      NAME = "comparisonA",
-      obj = dds,
+      NAME = "baseline",
+      obj = se_de,
       type = "HALLMARK",
-      conditions = c("groupA", "groupB"),
+      conditions = c("trt", "untrt"),
       species = "hs",
-      condition_var = condition # bare symbol, not a string
+      condition_var = dex # bare symbol, not a string
     )
   )
   expect_no_error(
     get.gsea(
-      NAME = "comparisonA",
-      obj = dds,
+      NAME = "baseline",
+      obj = se_de,
       type = "HALLMARK",
-      conditions = c("groupA", "groupB"),
+      conditions = c("trt", "untrt"),
       species = "hs",
-      condition_var = "condition"
+      condition_var = "dex"
     )
   )
 

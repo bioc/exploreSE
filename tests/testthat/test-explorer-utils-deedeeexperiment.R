@@ -3,6 +3,17 @@
 ## a real DeeDeeExperiment object so that methods::is(SE, "DeeDeeExperiment") is
 ## TRUE, and mock the getDEA*/getFEA* accessors to keep the tests fast and focused
 ## on the logic in explorer_utils.R itself.
+##
+## Most tests below run against the package's bundled real-world
+## DeeDeeExperiment (se_with_de) as that object - the mocked accessors fully
+## control what's returned, so the object just needs to satisfy
+## methods::is(SE, "DeeDeeExperiment"). The two "FALSE" checks specifically
+## need an object with zero DEA/FEA results, which se_with_de doesn't have
+## (it ships with precomputed results), so those two keep a minimal empty
+## fixture.
+
+data("se_with_des", package = "exploreSE")
+se_de <- se_with_de
 
 make_empty_dde <- function() {
   se <- SummarizedExperiment::SummarizedExperiment(
@@ -20,7 +31,7 @@ test_that(".check_precomputed_de is TRUE when getDEANames() reports results", {
     getDEANames = function(...) c("comparisonA"),
     .package = "DeeDeeExperiment"
   )
-  expect_true(.check_precomputed_de(make_empty_dde()))
+  expect_true(.check_precomputed_de(se_de))
 })
 
 test_that(".check_precomputed_fe is FALSE for a DeeDeeExperiment with no FEA results", {
@@ -32,7 +43,7 @@ test_that(".check_precomputed_fe is TRUE when getFEANames() reports results", {
     getFEANames = function(...) c("comparisonA_up_go"),
     .package = "DeeDeeExperiment"
   )
-  expect_true(.check_precomputed_fe(make_empty_dde()))
+  expect_true(.check_precomputed_fe(se_de))
 })
 
 test_that(".de_results_names delegates to getDEANames() for a DeeDeeExperiment", {
@@ -40,7 +51,7 @@ test_that(".de_results_names delegates to getDEANames() for a DeeDeeExperiment",
     getDEANames = function(...) c("comparisonA", "comparisonB"),
     .package = "DeeDeeExperiment"
   )
-  expect_equal(.de_results_names(make_empty_dde()), c("comparisonA", "comparisonB"))
+  expect_equal(.de_results_names(se_de), c("comparisonA", "comparisonB"))
 })
 
 test_that(".fe_results_names delegates to names(getFEAList()) for a DeeDeeExperiment", {
@@ -48,7 +59,7 @@ test_that(".fe_results_names delegates to names(getFEAList()) for a DeeDeeExperi
     getFEAList = function(...) list(up_go = data.frame(), dn_go = data.frame()),
     .package = "DeeDeeExperiment"
   )
-  expect_equal(.fe_results_names(make_empty_dde(), "comparisonA"), c("up_go", "dn_go"))
+  expect_equal(.fe_results_names(se_de, "comparisonA"), c("up_go", "dn_go"))
 })
 
 test_that(".de_result strips the 'NAME_' column prefix returned by getDEA()", {
@@ -61,7 +72,7 @@ test_that(".de_result strips the 'NAME_' column prefix returned by getDEA()", {
     .package = "DeeDeeExperiment"
   )
 
-  result <- .de_result(make_empty_dde(), "comparisonA")
+  result <- .de_result(se_de, "comparisonA")
 
   expect_named(result, c("padj", "log2FoldChange"))
   expect_equal(result$padj, c(0.01, 0.2))
@@ -78,9 +89,16 @@ test_that(".de_result only strips the matching NAME prefix, not unrelated column
     .package = "DeeDeeExperiment"
   )
 
-  result <- .de_result(make_empty_dde(), "comparisonA")
+  result <- .de_result(se_de, "comparisonA")
 
   expect_named(result, c("padj", "unrelated_column"))
+})
+
+test_that(".de_result works unmocked against se_de's real getDEA() output", {
+  result <- .de_result(se_de, "baseline")
+
+  expect_named(result, c("log2FoldChange", "pvalue", "padj"))
+  expect_equal(nrow(result), nrow(se_de))
 })
 
 test_that(".fe_result converts every entry of the FEA list to a data frame", {
@@ -93,9 +111,19 @@ test_that(".fe_result converts every entry of the FEA list to a data frame", {
     .package = "DeeDeeExperiment"
   )
 
-  result <- .fe_result(make_empty_dde(), "comparisonA")
+  result <- .fe_result(se_de, "comparisonA")
 
   expect_named(result, c("up_go", "dn_go"))
   expect_true(all(vapply(result, is.data.frame, logical(1))))
   expect_equal(result$up_go$Description, "term A")
+})
+
+test_that(".fe_result works unmocked against se_with_go's real getFEAList() output", {
+  data("se_with_gos", package = "exploreSE")
+
+  result <- .fe_result(se_with_go, "baseline")
+
+  expect_named(result, c("baseline_up_go", "baseline_down_go"))
+  expect_true(all(vapply(result, is.data.frame, logical(1))))
+  expect_true(all(vapply(result, function(x) "FoldEnrichment" %in% names(x), logical(1))))
 })

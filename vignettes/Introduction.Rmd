@@ -142,12 +142,12 @@ On the top side, you have 6 riders to choose from:
 
 ## PCA view
 Progressing through the app, you can navigate to the PCA rider.
-![View of the PCA rider](screenshots/pca_dex.png)
+![View of the PCA rider](screenshots/pca_baseline.png)
 
 You can select the coloring scheme of the the points in the drop down menu, as well as how many genes are used to calculate the PCA. 
 In the `airway` dataset, the dexamethasone treatment, saved in the `dex` variable, is the primary variable of interest, but you can also select other from the dropdown menu. 
 
-![Akternate coloring of the PCA](screenshots/pca_cell.png)
+![Alternate coloring of the PCA](screenshots/pca_dex.png)
 
 
 ## Expression plotting
@@ -161,12 +161,12 @@ Navigating to the Gene Expression tab, you can check the expression of selected 
 
 The heart of this application is the comparison of different possible models and within this tab, we are starting that process. 
 
-![Differnetial expression overview for the baseline model.](screenshots/de_baseline.png)
+![Differential expression overview for the baseline model.](screenshots/de_baseline.png)
 
 On the topof the page, a little overview indicates all the comparisons found in the respective slots. 
 Below, a barchart indicates the number oif differentially expressed genes. The specifics of the results can looked up in a table below and exported. 
 
-This view alöso exists for each comparison; selecting a different comparison from the drop-down menu on th eleft hand side refreshes the view:
+This view also exists for each comparison; selecting a different comparison from the drop-down menu on th eleft hand side refreshes the view:
 
 ![Differential expression overview for the cell-controlled model.](screenshots/de_controlled.png)
 
@@ -186,8 +186,11 @@ For interpretation of these results, you often rely on the different enrichment 
 
 In this case, we are looking at the GO term enrichments for the baseline model. Like before, some graphical adjustments can be set at the top. Below, we have two bar charts, one for each direction of the comparison. The genes driving the enrichment are written inside the bars. 
 
-Again, switching the comparison refreshes this view. 
-![Enriochment result for the cell-controlled model.](screenshots/gos_controlled.png)
+## Comparison of Fold Changes
+
+Direct comparison of fold changes across models can generate insights into the differences. For this, two models can be selected and their respective fold changes plotted against each other.
+
+![FC-FC plot of the baseline and cell-controlled models.](screenshots/fc_fc.png)] 
 
 # FAQ
 
