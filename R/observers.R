@@ -1,48 +1,13 @@
 .create_dir_color_observers <- function(input, session, rv) {
     # nocov start
-    shiny::observe({
-        # for up
-        shiny::updateSelectInput(session, "up_col_1", selected = rv$up_col)
-        shiny::updateSelectInput(session, "up_col_2", selected = rv$up_col)
-        # down
-        shiny::updateSelectInput(session, "dn_col_1", selected = rv$dn_col)
-        shiny::updateSelectInput(session, "dn_col_2", selected = rv$dn_col)
-        # highlight
-        shiny::updateSelectInput(
-            session,
-            "high_col_1",
-            selected = rv$highlight_col
-        )
-        shiny::updateSelectInput(
-            session,
-            "high_col_2",
-            selected = rv$highlight_col
-        )
+    shiny::observeEvent(input$up_col, {
+        rv$up_col <- input$up_col
     })
-    # nocov end
-
-    # nocov start
-    # up
-    shiny::observeEvent(input$up_col_1, {
-        rv$up_col <- input$up_col_1
+    shiny::observeEvent(input$dn_col, {
+        rv$dn_col <- input$dn_col
     })
-    shiny::observeEvent(input$up_col_2, {
-        rv$up_col <- input$up_col_2
-    })
-
-    #down
-    shiny::observeEvent(input$dn_col_1, {
-        rv$dn_col <- input$dn_col_1
-    })
-    shiny::observeEvent(input$dn_col_2, {
-        rv$dn_col <- input$dn_col_2
-    })
-    #highlight
-    shiny::observeEvent(input$high_col_1, {
-        rv$highlight_col <- input$high_col_1
-    })
-    shiny::observeEvent(input$high_col_2, {
-        rv$highlight_col <- input$high_col_2
+    shiny::observeEvent(input$high_col, {
+        rv$highlight_col <- input$high_col
     })
     # nocov end
 }
@@ -50,18 +15,6 @@
 .create_interest_color_observers <- function(input, session, rv) {
     # nocov start
     shiny::observe({
-        # color var
-        shiny::updateSelectInput(
-            session,
-            "color_var_1",
-            selected = rv$color_var
-        )
-        shiny::updateSelectInput(
-            session,
-            "color_var_2",
-            selected = rv$color_var
-        )
-
         if (!is.null(rv$se)) {
             shiny::updateCheckboxGroupInput(
                 session,
@@ -79,11 +32,8 @@
     # nocov end
 
     # nocov start
-    shiny::observeEvent(input$color_var_1, {
-        rv$color_var <- input$color_var_1
-    })
-    shiny::observeEvent(input$color_var_2, {
-        rv$color_var <- input$color_var_2
+    shiny::observeEvent(input$color_var, {
+        rv$color_var <- input$color_var
     })
     # nocov end
 }
@@ -185,13 +135,7 @@
 
         shiny::updateSelectInput(
             session,
-            "color_var_1",
-            choices = col_vars,
-            selected = default_col_var
-        )
-        shiny::updateSelectInput(
-            session,
-            "color_var_2",
+            "color_var",
             choices = col_vars,
             selected = default_col_var
         )

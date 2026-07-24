@@ -13,34 +13,58 @@ ui <- shiny::fluidPage(
             ),
             shiny::checkboxInput("use_demo", "Use Demo Data", value = TRUE),
             shiny::hr(),
+            shiny::h4("Analysis Options"),
 
             shiny::conditionalPanel(
-                condition = "output.data_loaded",
-                shiny::h4("Analysis Options"),
+                condition = "input.main_tabs == 'PCA' | input.main_tabs == 'Gene Expression'",
+                shiny::column(
+                    3,
+                    shiny::selectInput(
+                        "color_var",
+                        "Color/Group by:",
+                        choices = NULL
+                    ),
+                )
+            ),
+
+            shiny::conditionalPanel(
+                condition = "input.main_tabs == 'Gene Expression' | input.main_tabs == 'Volcano Plot' | input.main_tabs == 'Enrichment Results'",
 
                 shiny::selectInput(
                     "row_data_var",
                     "Select the gene identifier",
                     choices = NULL
                 ),
-
-                shiny::h5("DE Analysis"),
-                shiny::conditionalPanel(
-                    condition = "output.has_precomputed_de",
-                    shiny::selectInput(
-                        "de_comparison",
-                        "Select Comparison:",
-                        choices = NULL
-                    )
-                ),
             ),
 
             shiny::conditionalPanel(
                 condition = "input.main_tabs == 'DE Results' | input.main_tabs == 'Volcano Plot' | input.main_tabs == 'Enrichment Results'",
-                shiny::selectInput(
-                    "mock",
-                    "Select Comparison:",
-                    choices = NULL
+                shiny::conditionalPanel(
+                    condition = "output.data_loaded",
+                    shiny::conditionalPanel(
+                        condition = "output.has_precomputed_de",
+                        shiny::selectInput(
+                            "de_comparison",
+                            "Select Comparison:",
+                            choices = NULL
+                        )
+                    ),
+                ),
+
+                colourpicker::colourInput(
+                    "up_col",
+                    "Color for Upregulated",
+                    "#d62728"
+                ),
+                colourpicker::colourInput(
+                    "dn_col",
+                    "Color for Downregulated",
+                    "#1f77b4"
+                ),
+                colourpicker::colourInput(
+                    "high_col",
+                    "Color for Highlights",
+                    "#FFD700"
                 )
             )
         ),
@@ -64,11 +88,6 @@ ui <- shiny::fluidPage(
                     shiny::fluidRow(
                         shiny::column(
                             3,
-                            shiny::selectInput(
-                                "color_var_1",
-                                "Color/Group by:",
-                                choices = NULL
-                            ),
                             shiny::numericInput(
                                 "top_genes",
                                 "Top variable genes for PCA:",
@@ -116,14 +135,6 @@ ui <- shiny::fluidPage(
                                     "Violin" = "violin"
                                 )
                             )
-                        ),
-                        shiny::column(
-                            3,
-                            shiny::selectInput(
-                                "color_var_2",
-                                "Color/Group by:",
-                                choices = NULL
-                            ),
                         )
                     ),
                     plotly::plotlyOutput("expr_plot", height = "500px"),
@@ -197,24 +208,6 @@ ui <- shiny::fluidPage(
                                 max = 50,
                                 step = 5
                             )
-                        ),
-                        shiny::column(
-                            3,
-                            colourpicker::colourInput(
-                                "up_col_1",
-                                "Color for Upregulated",
-                                "#d62728"
-                            ),
-                            colourpicker::colourInput(
-                                "dn_col_1",
-                                "Color for Downregulated",
-                                "#1f77b4"
-                            ),
-                            colourpicker::colourInput(
-                                "high_col_1",
-                                "Color for Highlights",
-                                "#FFD700"
-                            )
                         )
                     ),
                     shiny::fluidRow(
@@ -263,24 +256,6 @@ ui <- shiny::fluidPage(
                                 min = 3,
                                 max = 20,
                                 step = 1
-                            )
-                        ),
-                        shiny::column(
-                            3,
-                            colourpicker::colourInput(
-                                "up_col_2",
-                                "Color for Upregulated",
-                                "#d62728"
-                            ),
-                            colourpicker::colourInput(
-                                "dn_col_2",
-                                "Color for Downregulated",
-                                "#1f77b4"
-                            ),
-                            colourpicker::colourInput(
-                                "high_col_2",
-                                "Color for Highlights",
-                                "#FFD700"
                             )
                         )
                     ),
