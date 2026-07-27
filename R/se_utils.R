@@ -14,7 +14,13 @@
 #' @export
 #'
 #' @examples
-#' data("se_with_des", package = "exploreSE")
+#'
+#' library(airway)
+#' library(DeeDeeExperiment)
+#' data(airway)
+#' data("baseline_de", package = "exploreSE")
+#'
+#' se_with_de <- addDEA(DeeDeeExperiment(airway), baseline)
 #' se_with_go <- get.gos(obj = se_with_de,
 #'                       NAME = "baseline",
 #'                       gene_type = "ENSEMBL")
@@ -127,7 +133,13 @@ get.gos <- function(NAME, obj, species = "hs", gene_type = "SYMBOL") {
 #' @export
 #'
 #' @examples
-#' data("se_with_des", package = "exploreSE")
+#'
+#' library(airway)
+#' library(DeeDeeExperiment)
+#' data(airway)
+#' data("baseline_de", package = "exploreSE")
+#'
+#' se_with_de <- addDEA(DeeDeeExperiment(airway), baseline)
 #' se_with_gsea <- get.gsea(NAME = "baseline",
 #'                          obj = se_with_de,
 #'                          type = "HALLMARK",

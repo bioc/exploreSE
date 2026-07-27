@@ -68,7 +68,7 @@ NULL
 #'
 #' @format A EnrichResults
 #'
-#' @name baseline_dn_go
+#' @name baseline_down_go
 #' @docType data
 NULL
 
@@ -108,6 +108,6 @@ NULL
 #'
 #' @format A EnrichResults
 #'
-#' @name controlled_dn_go
+#' @name controlled_down_go
 #' @docType data
 NULL

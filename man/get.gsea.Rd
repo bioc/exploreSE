@@ -41,7 +41,13 @@ such as the \code{\link[clusterProfiler:GSEA]{clusterProfiler::GSEA()}} implemen
 logFC ranked genes.
 }
 \examples{
-data("se_with_des", package = "exploreSE")
+
+library(airway)
+library(DeeDeeExperiment)
+data(airway)
+data("baseline_de", package = "exploreSE")
+
+se_with_de <- addDEA(DeeDeeExperiment(airway), baseline)
 se_with_gsea <- get.gsea(NAME = "baseline",
                          obj = se_with_de,
                          type = "HALLMARK",

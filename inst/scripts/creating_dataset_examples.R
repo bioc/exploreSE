@@ -41,7 +41,7 @@ baseline_up_go <- clusterProfiler::enrichGO(
 )
 
 
-baseline_dn_go <- clusterProfiler::enrichGO(
+baseline_down_go <- clusterProfiler::enrichGO(
   dn_baseline,
   org.Hs.eg.db::org.Hs.eg.db,
   keyType = "ENSEMBL",
@@ -75,7 +75,7 @@ controlled_up_go <- clusterProfiler::enrichGO(
   ont = "BP",
   universe = universe_controlled
 )
-controlled_dn_go <- clusterProfiler::enrichGO(
+controlled_down_go <- clusterProfiler::enrichGO(
   dn_controlled,
   org.Hs.eg.db::org.Hs.eg.db,
   keyType = "ENSEMBL",
@@ -86,7 +86,7 @@ controlled_dn_go <- clusterProfiler::enrichGO(
 # save(cell_controlled, file = "data/controlled_de.RData", compress = "xz")
 
 # save(baseline_up_go, file = "data/baseline_up_go.RData", compress = "xz")
-# save(baseline_dn_go, file = "data/baseline_dn_go.RData", compress = "xz")
+# save(baseline_down_go, file = "data/baseline_down_go.RData", compress = "xz")
 
 # save(controlled_up_go, file = "data/controlled_up_go.RData", compress = "xz")
-# save(controlled_dn_go, file = "data/controlled_dn_go.RData", compress = "xz")
+# save(controlled_down_go, file = "data/controlled_down_go.RData", compress = "xz")

@@ -25,7 +25,13 @@ up- downregulated genes, at the cutoffs of |logFC| > 1 and adjusted p-
 value < 0.05. It utilises the \code{\link[clusterProfiler:enrichGO]{clusterProfiler::enrichGO()}} function.
 }
 \examples{
-data("se_with_des", package = "exploreSE")
+
+library(airway)
+library(DeeDeeExperiment)
+data(airway)
+data("baseline_de", package = "exploreSE")
+
+se_with_de <- addDEA(DeeDeeExperiment(airway), baseline)
 se_with_go <- get.gos(obj = se_with_de,
                       NAME = "baseline",
                       gene_type = "ENSEMBL")
