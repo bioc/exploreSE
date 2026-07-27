@@ -8,9 +8,6 @@
 ## GSEA-style (NES) result though - only precomputed GO enrichments - so the
 ## GSEA-related .plot_fe tests still use a small synthetic fixture.
 
-data("se_with_des", package = "exploreSE")
-data("se_with_gos", package = "exploreSE")
-
 de_results <- function(NAME = "baseline") {
   .de_result(se_with_de, NAME) %>%
     tibble::rownames_to_column("gene_id")

@@ -14,21 +14,79 @@ design(airway) <- ~ cell + dex
 airway <- DESeq(airway)
 cell_controlled <- results(airway)
 
-dd <- DeeDeeExperiment(airway)
+universe_baseline <- baseline %>%
+  BiocGenerics::as.data.frame() %>%
+  tibble::rownames_to_column("gene") %>%
+  dplyr::filter(!is.na(padj)) %>%
+  dplyr::pull(gene)
 
-se_with_de <- addDEA(dd, baseline)
-se_with_de <- addDEA(se_with_de, cell_controlled)
+up_baseline <- baseline %>%
+  BiocGenerics::as.data.frame() %>%
+  tibble::rownames_to_column("gene") %>%
+  dplyr::filter(padj < 0.05, log2FoldChange > 1) %>%
+  dplyr::pull(gene)
+dn_baseline <- baseline %>%
+  BiocGenerics::as.data.frame() %>%
+  tibble::rownames_to_column("gene") %>%
+  dplyr::filter(padj < 0.05, log2FoldChange < -1) %>%
+  dplyr::pull(gene)
 
-se_with_go <- get.gos(
-  obj = se_with_de,
-  NAME = "baseline",
-  gene_type = "ENSEMBL"
+
+baseline_up_go <- clusterProfiler::enrichGO(
+  up_baseline,
+  org.Hs.eg.db::org.Hs.eg.db,
+  keyType = "ENSEMBL",
+  ont = "BP",
+  universe = universe_baseline
 )
-se_with_go <- get.gos(
-  obj = se_with_go,
-  NAME = "cell_controlled",
-  gene_type = "ENSEMBL"
+
+
+baseline_dn_go <- clusterProfiler::enrichGO(
+  dn_baseline,
+  org.Hs.eg.db::org.Hs.eg.db,
+  keyType = "ENSEMBL",
+  ont = "BP",
+  universe = universe_baseline
 )
 
-# save(se_with_de, file = "data/se_with_des.RData", compress = "xz")
-# save(se_with_go, file = "data/se_with_gos.RData", compress = "xz")
+
+universe_controlled <- cell_controlled %>%
+  BiocGenerics::as.data.frame() %>%
+  tibble::rownames_to_column("gene") %>%
+  dplyr::filter(!is.na(padj)) %>%
+  dplyr::pull(gene)
+
+up_controlled <- cell_controlled %>%
+  BiocGenerics::as.data.frame() %>%
+  tibble::rownames_to_column("gene") %>%
+  dplyr::filter(padj < 0.05, log2FoldChange > 1) %>%
+  dplyr::pull(gene)
+dn_controlled <- cell_controlled %>%
+  BiocGenerics::as.data.frame() %>%
+  tibble::rownames_to_column("gene") %>%
+  dplyr::filter(padj < 0.05, log2FoldChange < -1) %>%
+  dplyr::pull(gene)
+
+
+controlled_up_go <- clusterProfiler::enrichGO(
+  up_controlled,
+  org.Hs.eg.db::org.Hs.eg.db,
+  keyType = "ENSEMBL",
+  ont = "BP",
+  universe = universe_controlled
+)
+controlled_dn_go <- clusterProfiler::enrichGO(
+  dn_controlled,
+  org.Hs.eg.db::org.Hs.eg.db,
+  keyType = "ENSEMBL",
+  ont = "BP",
+  universe = universe_controlled
+)
+# save(baseline, file = "data/baseline_de.RData", compress = "xz")
+# save(cell_controlled, file = "data/controlled_de.RData", compress = "xz")
+
+# save(baseline_up_go, file = "data/baseline_up_go.RData", compress = "xz")
+# save(baseline_dn_go, file = "data/baseline_dn_go.RData", compress = "xz")
+
+# save(controlled_up_go, file = "data/controlled_up_go.RData", compress = "xz")
+# save(controlled_dn_go, file = "data/controlled_dn_go.RData", compress = "xz")

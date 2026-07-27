@@ -12,12 +12,17 @@
 ## (it ships with precomputed results), so those two keep a minimal empty
 ## fixture.
 
-data("se_with_des", package = "exploreSE")
 se_de <- se_with_de
 
 make_empty_dde <- function() {
   se <- SummarizedExperiment::SummarizedExperiment(
-    assays = list(counts = matrix(1:4, nrow = 2, dimnames = list(c("g1", "g2"), c("s1", "s2"))))
+    assays = list(
+      counts = matrix(
+        1:4,
+        nrow = 2,
+        dimnames = list(c("g1", "g2"), c("s1", "s2"))
+      )
+    )
   )
   DeeDeeExperiment::DeeDeeExperiment(se)
 }
@@ -125,5 +130,9 @@ test_that(".fe_result works unmocked against se_with_go's real getFEAList() outp
 
   expect_named(result, c("baseline_up_go", "baseline_down_go"))
   expect_true(all(vapply(result, is.data.frame, logical(1))))
-  expect_true(all(vapply(result, function(x) "FoldEnrichment" %in% names(x), logical(1))))
+  expect_true(all(vapply(
+    result,
+    function(x) "FoldEnrichment" %in% names(x),
+    logical(1)
+  )))
 })

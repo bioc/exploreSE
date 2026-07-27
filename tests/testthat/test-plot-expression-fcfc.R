@@ -1,7 +1,6 @@
 ## Tests for .plot_expression and .plot_fcfc, using the package's bundled
 ## real-world DeeDeeExperiment (se_with_de) rather than synthetic fixtures.
 
-data("se_with_des", package = "exploreSE")
 se_de <- se_with_de
 
 test_that(".plot_expression returns a ggplot titled with the gene name", {
@@ -79,7 +78,10 @@ test_that(".plot_expression filters samples down to the requested LEVELS", {
   )
   built <- ggplot2::ggplot_build(p)$data[[1]]
 
-  expect_equal(nrow(built), sum(SummarizedExperiment::colData(se_de)$dex == "trt"))
+  expect_equal(
+    nrow(built),
+    sum(SummarizedExperiment::colData(se_de)$dex == "trt")
+  )
 })
 
 test_that(".plot_fcfc returns a plotly comparing two DE comparisons", {

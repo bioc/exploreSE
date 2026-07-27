@@ -18,17 +18,18 @@
 ## exercise get.gsea()'s default condition_var), so those two tests still
 ## use small hand-built fixtures.
 
-data("se_with_des", package = "exploreSE")
 se_de <- se_with_de
 
 make_de_se <- function(res_df) {
   se <- SummarizedExperiment::SummarizedExperiment(
-    assays = list(counts = matrix(
-      1,
-      nrow = nrow(res_df),
-      ncol = 1,
-      dimnames = list(rownames(res_df), "s1")
-    ))
+    assays = list(
+      counts = matrix(
+        1,
+        nrow = nrow(res_df),
+        ncol = 1,
+        dimnames = list(rownames(res_df), "s1")
+      )
+    )
   )
   S4Vectors::metadata(se)$de_results <- list(comparisonA = res_df)
   se
@@ -74,7 +75,12 @@ test_that("get.gos classifies up/down/universe genes and forwards them to enrich
     .package = "DeeDeeExperiment"
   )
 
-  result <- get.gos("baseline", obj = se_de, species = "hs", gene_type = "ENSEMBL")
+  result <- get.gos(
+    "baseline",
+    obj = se_de,
+    species = "hs",
+    gene_type = "ENSEMBL"
+  )
 
   expect_true(methods::is(result, "DeeDeeExperiment"))
 
@@ -91,11 +97,23 @@ test_that("get.gos classifies up/down/universe genes and forwards them to enrich
     logical(1)
   )))
 
-  expect_true(all(vapply(enrichGO_calls, function(x) x$keyType == "ENSEMBL", logical(1))))
-  expect_true(all(vapply(enrichGO_calls, function(x) x$ont == "BP", logical(1))))
+  expect_true(all(vapply(
+    enrichGO_calls,
+    function(x) x$keyType == "ENSEMBL",
+    logical(1)
+  )))
+  expect_true(all(vapply(
+    enrichGO_calls,
+    function(x) x$ont == "BP",
+    logical(1)
+  )))
 
   expect_equal(length(addFEA_calls), 2)
-  expect_true(all(vapply(addFEA_calls, function(x) x$name == "baseline", logical(1))))
+  expect_true(all(vapply(
+    addFEA_calls,
+    function(x) x$name == "baseline",
+    logical(1)
+  )))
 
   expect_equal(
     vapply(renameFEA_calls, function(x) x$old_name, character(1)),
@@ -244,7 +262,9 @@ test_that("get.gsea requests the Reactome collection for type = 'REACTOME'", {
     .package = "msigdbr"
   )
   testthat::local_mocked_bindings(
-    GSEA = function(geneList, TERM2GENE, ...) structure(list(), class = "mock_gsea_result"),
+    GSEA = function(geneList, TERM2GENE, ...) {
+      structure(list(), class = "mock_gsea_result")
+    },
     .package = "clusterProfiler"
   )
   testthat::local_mocked_bindings(
@@ -273,9 +293,24 @@ test_that("get.gsea's default condition_var works without being supplied explici
   # a colData column named "condition".
   counts <- matrix(
     c(
-      100, 110, 90, 10, 12, 8,
-      10, 12, 8, 100, 110, 90,
-      50, 52, 48, 50, 51, 49
+      100,
+      110,
+      90,
+      10,
+      12,
+      8,
+      10,
+      12,
+      8,
+      100,
+      110,
+      90,
+      50,
+      52,
+      48,
+      50,
+      51,
+      49
     ),
     nrow = 3,
     byrow = TRUE
@@ -291,7 +326,9 @@ test_that("get.gsea's default condition_var works without being supplied explici
   dds <- DESeq2::estimateSizeFactors(dds)
 
   testthat::local_mocked_bindings(
-    msigdbr = function(...) data.frame(gs_name = "SET_A", gene_symbol = "GENE1"),
+    msigdbr = function(...) {
+      data.frame(gs_name = "SET_A", gene_symbol = "GENE1")
+    },
     .package = "msigdbr"
   )
   gsea_calls <- list()
@@ -325,7 +362,9 @@ test_that("get.gsea's default condition_var works without being supplied explici
 
 test_that("get.gsea accepts condition_var as either a bare symbol or a string", {
   testthat::local_mocked_bindings(
-    msigdbr = function(...) data.frame(gs_name = "SET_A", gene_symbol = "GENE1"),
+    msigdbr = function(...) {
+      data.frame(gs_name = "SET_A", gene_symbol = "GENE1")
+    },
     .package = "msigdbr"
   )
   testthat::local_mocked_bindings(
