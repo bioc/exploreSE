@@ -1,17 +1,7 @@
 ## Tests for the DeeDeeExperiment code path of the explorer_utils.R helpers.
-## clusterProfiler/DeeDeeExperiment internals aren't exercised here - we only need
-## a real DeeDeeExperiment object so that methods::is(SE, "DeeDeeExperiment") is
-## TRUE, and mock the getDEA*/getFEA* accessors to keep the tests fast and focused
+## clusterProfiler/DeeDeeExperiment internals aren't exercised here - mock
+## the getDEA*/getFEA* accessors to keep the tests fast and focused
 ## on the logic in explorer_utils.R itself.
-##
-## Most tests below run against the package's bundled real-world
-## DeeDeeExperiment (se_with_de) as that object - the mocked accessors fully
-## control what's returned, so the object just needs to satisfy
-## methods::is(SE, "DeeDeeExperiment"). The two "FALSE" checks specifically
-## need an object with zero DEA/FEA results, which se_with_de doesn't have
-## (it ships with precomputed results), so those two keep a minimal empty
-## fixture.
-
 se_de <- se_with_de
 
 make_empty_dde <- function() {

@@ -1,5 +1,4 @@
-## Tests for .plot_expression and .plot_fcfc, using the package's bundled
-## real-world DeeDeeExperiment (se_with_de) rather than synthetic fixtures.
+## Tests for .plot_expression and .plot_fcfc
 
 se_de <- se_with_de
 
@@ -64,7 +63,7 @@ test_that(".plot_expression normalises counts by sizeFactor when present", {
   built <- ggplot2::ggplot_build(p)$data[[1]]
   plotted <- built$y[match(colnames(se_de), built$text)]
 
-  expect_equal(plotted, unname(expected), tolerance = 1e-6)
+  expect_equal(plotted, expected, tolerance = 1e-6)
 })
 
 test_that(".plot_expression filters samples down to the requested LEVELS", {

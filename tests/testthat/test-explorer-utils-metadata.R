@@ -1,9 +1,14 @@
 ## Tests for the "plain SummarizedExperiment + metadata()$de_results / $fe_results"
-## code path (as opposed to the DeeDeeExperiment path, covered separately).
 
 make_se_with_metadata <- function(de_results = NULL, fe_results = NULL) {
   se <- SummarizedExperiment::SummarizedExperiment(
-    assays = list(counts = matrix(1:4, nrow = 2, dimnames = list(c("g1", "g2"), c("s1", "s2"))))
+    assays = list(
+      counts = matrix(
+        1:4,
+        nrow = 2,
+        dimnames = list(c("g1", "g2"), c("s1", "s2"))
+      )
+    )
   )
   if (!is.null(de_results)) {
     S4Vectors::metadata(se)$de_results <- de_results
@@ -17,7 +22,9 @@ make_se_with_metadata <- function(de_results = NULL, fe_results = NULL) {
 test_that(".check_precomputed_de is FALSE for NULL, empty and missing metadata", {
   expect_false(.check_precomputed_de(NULL))
   expect_false(.check_precomputed_de(make_se_with_metadata()))
-  expect_false(.check_precomputed_de(make_se_with_metadata(de_results = list())))
+  expect_false(.check_precomputed_de(make_se_with_metadata(
+    de_results = list()
+  )))
 })
 
 test_that(".check_precomputed_de is TRUE when de_results is a non-empty list", {
@@ -28,7 +35,9 @@ test_that(".check_precomputed_de is TRUE when de_results is a non-empty list", {
 test_that(".check_precomputed_fe is FALSE for NULL, empty and missing metadata", {
   expect_false(.check_precomputed_fe(NULL))
   expect_false(.check_precomputed_fe(make_se_with_metadata()))
-  expect_false(.check_precomputed_fe(make_se_with_metadata(fe_results = list())))
+  expect_false(.check_precomputed_fe(make_se_with_metadata(
+    fe_results = list()
+  )))
 })
 
 test_that(".check_precomputed_fe is TRUE when fe_results is a non-empty list", {

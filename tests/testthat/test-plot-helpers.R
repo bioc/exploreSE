@@ -1,12 +1,4 @@
 ## Tests for the ggplot2/plotly building helpers in explorer_utils.R.
-## We only assert on the returned object's type/structure, not on exact
-## pixel/rendering output.
-##
-## Where the package's bundled real-world data has a matching shape, it's
-## used directly (via .de_result()/.fe_result() on se_with_de/se_with_go)
-## instead of a hand-built data.frame. Neither bundled object contains a
-## GSEA-style (NES) result though - only precomputed GO enrichments - so the
-## GSEA-related .plot_fe tests still use a small synthetic fixture.
 
 de_results <- function(NAME = "baseline") {
   .de_result(se_with_de, NAME) %>%
@@ -86,8 +78,6 @@ test_that(".plot_volcano works with highlighted genes and no top-N labels", {
 })
 
 test_that(".plot_volcano handles no significant genes gracefully", {
-  # A real subset of baseline that happens to contain no genes clearing the
-  # padj < 0.05 significance threshold used inside .plot_volcano().
   res <- de_results("baseline") %>%
     dplyr::filter(!is.na(padj), padj > 0.05)
   expect_true(nrow(res) > 0)

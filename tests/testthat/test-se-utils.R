@@ -1,22 +1,7 @@
 ## Tests for the exported orchestration functions get.gos()/get.gsea().
-##
-## Both functions delegate the actual enrichment computation to
-## clusterProfiler (enrichGO()/GSEA()), external annotation databases and
-## DeeDeeExperiment (addFEA()/renameFEA()). Rather than depending on real
-## biological results (slow, non-deterministic, and would really be testing
-## clusterProfiler rather than this package), we mock those calls and assert
-## on the package's own logic: which genes get classified as up/down/universe,
-## how the GSEA ranking statistic is computed, and how results get attached
-## to the returned object.
-##
-## Where possible, the input object is the package's own bundled real-world
-## DeeDeeExperiment (se_with_de) rather than a synthetic fixture - the
-## expected gene sets/ranking direction below are computed independently
-## from that real data rather than hand-picked. Two edge cases aren't
-## naturally present in se_with_de (a comparison with zero significant genes
-## in one direction; a colData column literally named "condition", to
-## exercise get.gsea()'s default condition_var), so those two tests still
-## use small hand-built fixtures.
+# leading principle: we dont need to call all the external functions;
+# they should work on their own, just test that the calls are correctly
+## placed.
 
 se_de <- se_with_de
 
@@ -157,7 +142,6 @@ test_that("get.gos skips addFEA/renameFEA when a direction has no significant ge
 
   get.gos("comparisonA", obj = se, species = "hs", gene_type = "SYMBOL")
 
-  # only the "up" direction has significant genes, so addFEA should be called once
   expect_equal(length(addFEA_calls), 1)
 })
 
@@ -223,12 +207,14 @@ test_that("get.gsea builds a descending gene ranking and forwards it to GSEA()",
 
   expect_true(is.numeric(rankings))
   expect_true(!is.null(names(rankings)))
-  # results are returned sorted from most to least "up"
+  # results are returned sorted from highest to lowest
   expect_true(all(diff(rankings) <= 0))
 
   # Cross-check the ranking direction against a plain, independently
-  # computed mean-expression comparison (not the package's sd-scaled
-  # formula) for the most extreme gene at each end of the ranking.
+  # computed mean-expression comparison
+  # this might fail in some very specific circumstances, but within
+  # airway it's fine
+
   counts_norm <- BiocGenerics::counts(se_de, normalized = TRUE)
   dex <- SummarizedExperiment::colData(se_de)$dex
   top_gene <- names(rankings)[1]
@@ -345,7 +331,6 @@ test_that("get.gsea's default condition_var works without being supplied explici
     .package = "DeeDeeExperiment"
   )
 
-  # condition_var intentionally omitted - relies on the "condition" default
   expect_no_error(
     get.gsea(
       NAME = "comparisonA",
@@ -360,7 +345,7 @@ test_that("get.gsea's default condition_var works without being supplied explici
   expect_true(is.numeric(gsea_calls[[1]]$geneList))
 })
 
-test_that("get.gsea accepts condition_var as either a bare symbol or a string", {
+test_that("get.gsea accepts condition_var as either a symbol or a string", {
   testthat::local_mocked_bindings(
     msigdbr = function(...) {
       data.frame(gs_name = "SET_A", gene_symbol = "GENE1")
@@ -388,7 +373,7 @@ test_that("get.gsea accepts condition_var as either a bare symbol or a string", 
       type = "HALLMARK",
       conditions = c("trt", "untrt"),
       species = "hs",
-      condition_var = dex # bare symbol, not a string
+      condition_var = dex
     )
   )
   expect_no_error(
