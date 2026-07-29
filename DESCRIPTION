@@ -1,10 +1,10 @@
 Package: exploreSE
 Title: Explorer for Your Bulk RNA Seq Analyses
-Version: 0.99.2
+Version: 0.99.3
 Authors@R: 
     person("Jasper", "Spitzer", , "jasspitzer135@gmail.com", 
         role = c("aut", "cre"), comment = c(ORCID="0000-0001-9696-2092"))
-Description: Interactive exploration of a Summarized experiment and associated DE analyses.
+Description: Interactive exploration of a Summarized experiment and associated DE analyses. This is meant to be a tool for exploration and discussion, rather than analysis.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
