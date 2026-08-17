@@ -3,19 +3,19 @@
 #' it checks metadata(object)$de_results
 #' @noRd
 .check_precomputed_de <- function(SE) {
-  if (is.null(SE)) {
-    return(FALSE)
-  }
-  if (
-    methods::is(SE, "DeeDeeExperiment") &&
-      !is.null(DeeDeeExperiment::getDEANames(SE))
-  ) {
-    return(TRUE)
-  } else {
-    !is.null(S4Vectors::metadata(SE)$de_results) &&
-      is.list(S4Vectors::metadata(SE)$de_results) &&
-      length(S4Vectors::metadata(SE)$de_results) > 0
-  }
+    if (is.null(SE)) {
+        return(FALSE)
+    }
+    if (
+        methods::is(SE, "DeeDeeExperiment") &&
+            !is.null(DeeDeeExperiment::getDEANames(SE))
+    ) {
+        return(TRUE)
+    } else {
+        !is.null(S4Vectors::metadata(SE)$de_results) &&
+            is.list(S4Vectors::metadata(SE)$de_results) &&
+            length(S4Vectors::metadata(SE)$de_results) > 0
+    }
 }
 
 #' checks for the presence of pre-computed FE results in the
@@ -23,85 +23,89 @@
 #' it checks metadata(object)$fe_results
 #' @noRd
 .check_precomputed_fe <- function(SE) {
-  if (is.null(SE)) {
-    return(FALSE)
-  }
-  if (
-    methods::is(SE, "DeeDeeExperiment") &&
-      !is.null(DeeDeeExperiment::getFEANames(SE))
-  ) {
-    return(TRUE)
-  } else {
-    !is.null(S4Vectors::metadata(SE)$fe_results) &&
-      is.list(S4Vectors::metadata(SE)$fe_results) &&
-      length(S4Vectors::metadata(SE)$fe_results) > 0
-  }
+    if (is.null(SE)) {
+        return(FALSE)
+    }
+    if (
+        methods::is(SE, "DeeDeeExperiment") &&
+            !is.null(DeeDeeExperiment::getFEANames(SE))
+    ) {
+        return(TRUE)
+    } else {
+        !is.null(S4Vectors::metadata(SE)$fe_results) &&
+            is.list(S4Vectors::metadata(SE)$fe_results) &&
+            length(S4Vectors::metadata(SE)$fe_results) > 0
+    }
 }
 
 #' helper funciton to fetch the names of the DE comparisons in the object
 #' @noRd
 .de_results_names <- function(SE) {
-  if (methods::is(SE, "DeeDeeExperiment")) {
-    DeeDeeExperiment::getDEANames(SE)
-  } else {
-    names(S4Vectors::metadata(SE)$de_results)
-  }
+    if (methods::is(SE, "DeeDeeExperiment")) {
+        DeeDeeExperiment::getDEANames(SE)
+    } else {
+        names(S4Vectors::metadata(SE)$de_results)
+    }
 }
 
 #' helper funciton to fetch the names of the FE comparisons in the object,
 #' belonging to a specified DE comparison
 #' @noRd
 .fe_results_names <- function(SE, NAME) {
-  if (methods::is(SE, "DeeDeeExperiment")) {
-    return(names(DeeDeeExperiment::getFEAList(SE, NAME)))
-  }
-  return(names(S4Vectors::metadata(SE)$fe_results[[NAME]]))
+    if (methods::is(SE, "DeeDeeExperiment")) {
+        return(names(DeeDeeExperiment::getFEAList(SE, NAME)))
+    }
+    return(names(S4Vectors::metadata(SE)$fe_results[[NAME]]))
 }
 
 # fetches a specified DE comparison by name
 #' @noRd
 .de_result <- function(SE, NAME) {
-  if (methods::is(SE, "DeeDeeExperiment")) {
-    res <- DeeDeeExperiment::getDEA(SE, NAME, type = "data.frame") %>%
-      dplyr::rename_with(.fn = \(x) stringr::str_remove(x, paste0(NAME, "_")))
-  } else {
-    res <- S4Vectors::metadata(SE)$de_results[[NAME]]
-  }
+    if (methods::is(SE, "DeeDeeExperiment")) {
+        res <- DeeDeeExperiment::getDEA(SE, NAME, type = "data.frame") %>%
+            dplyr::rename_with(.fn = \(x) {
+                stringr::str_remove(x, paste0(NAME, "_"))
+            })
+    } else {
+        res <- S4Vectors::metadata(SE)$de_results[[NAME]]
+    }
 }
 
 # fetches a specified DE comparison by name
 #' @noRd
 .fe_result <- function(SE, NAME) {
-  fe_list <- DeeDeeExperiment::getFEAList(SE, NAME, format = "original") %>%
-    purrr::map(BiocGenerics::as.data.frame)
-  return(fe_list)
+    fe_list <- DeeDeeExperiment::getFEAList(SE, NAME, format = "original") %>%
+        purrr::map(BiocGenerics::as.data.frame)
+    return(fe_list)
 }
 
 # plotting function for DE genes, returns a bar chart
 #' @noRd
 .plot_des <- function(
-  RES,
-  NAME,
-  padj_CO = 0.05,
-  fc_CO = 1,
-  COLS = c("darkred", "darkblue")
+    RES,
+    NAME,
+    padj_CO = 0.05,
+    fc_CO = 1,
+    COLS = c("darkred", "darkblue")
 ) {
-  p <- RES %>%
-    dplyr::filter(padj < padj_CO, abs(fc_CO) >= 1) %>%
-    dplyr::mutate(direction = ifelse(log2FoldChange > fc_CO, "Up", "Down")) %>%
-    dplyr::count(direction) %>%
-    ggplot2::ggplot(ggplot2::aes(direction, y = n, fill = direction)) +
-    ggplot2::geom_col() +
-    ggplot2::geom_label(
-      ggplot2::aes(label = n),
-      fill = "white",
-      show.legend = FALSE
-    ) +
-    ggplot2::scale_fill_manual(values = COLS) +
-    ggplot2::labs(title = paste("DE genes in", NAME), ) +
-    ggplot2::theme_light(base_size = 14) +
-    ggplot2::theme(legend.position = "none")
-  return(p)
+    p <- RES %>%
+        dplyr::filter(padj < padj_CO, abs(fc_CO) >= 1) %>%
+        dplyr::mutate(
+            direction = ifelse(log2FoldChange > fc_CO, "Up", "Down")
+        ) %>%
+        dplyr::count(direction) %>%
+        ggplot2::ggplot(ggplot2::aes(direction, y = n, fill = direction)) +
+        ggplot2::geom_col() +
+        ggplot2::geom_label(
+            ggplot2::aes(label = n),
+            fill = "white",
+            show.legend = FALSE
+        ) +
+        ggplot2::scale_fill_manual(values = COLS) +
+        ggplot2::labs(title = paste("DE genes in", NAME), ) +
+        ggplot2::theme_light(base_size = 14) +
+        ggplot2::theme(legend.position = "none")
+    return(p)
 }
 #' takes the functional enrichments and creates a bar chart
 #' recognises GSEA results  by the use of NES in the colnames
@@ -109,491 +113,519 @@
 #' able to be calculated
 #' @noRd
 .plot_fe <- function(
-  FE,
-  NAME = "up_go",
-  padj_CO = 0.05,
-  N_terms = 5,
-  COLS = c("Up" = "darkred", "Down" = "blue")
+    FE,
+    NAME = "up_go",
+    padj_CO = 0.05,
+    N_terms = 5,
+    COLS = c("Up" = "darkred", "Down" = "blue")
 ) {
-  # this can probably go when the DeeDee devel branch hits main, but for now needs to stay
-  padj_col <- ifelse("gs_p.adjust" %in% names(FE), "gs_p.adjust", "p.adjust")
+    # this can probably go when the DeeDee devel branch hits main, but for now needs to stay
+    padj_col <- ifelse("gs_p.adjust" %in% names(FE), "gs_p.adjust", "p.adjust")
 
-  if (sum(stringr::str_detect(names(FE), "NES")) > 0) {
-    gsea_df <- FE %>%
-      dplyr::filter(!!rlang::sym(padj_col) < padj_CO) %>%
-      dplyr::group_by(sign(NES)) %>%
-      dplyr::slice_max(abs(NES), n = round(N_terms / 2)) %>%
-      dplyr::ungroup() %>%
-      dplyr::mutate(
-        Description = stringr::str_remove(Description, "HALLMARK_") %>%
-          stringr::str_remove("REACTOME") %>%
-          stringr::str_replace_all("_", " ") %>%
-          forcats::fct_reorder(NES),
-        dir = ifelse(NES > 0, "Up", "Down")
-      )
+    if (sum(stringr::str_detect(names(FE), "NES")) > 0) {
+        gsea_df <- FE %>%
+            dplyr::filter(!!rlang::sym(padj_col) < padj_CO) %>%
+            dplyr::group_by(sign(NES)) %>%
+            dplyr::slice_max(abs(NES), n = round(N_terms / 2)) %>%
+            dplyr::ungroup() %>%
+            dplyr::mutate(
+                Description = stringr::str_remove(Description, "HALLMARK_") %>%
+                    stringr::str_remove("REACTOME") %>%
+                    stringr::str_replace_all("_", " ") %>%
+                    forcats::fct_reorder(NES),
+                dir = ifelse(NES > 0, "Up", "Down")
+            )
 
-    p <- ggplot2::ggplot(gsea_df, ggplot2::aes(NES, Description)) +
-      ggplot2::geom_col(ggplot2::aes(fill = dir)) +
-      ggplot2::scale_y_discrete(labels = \(x) {
-        stringr::str_wrap(x, width = 60)
-      }) +
-      ggplot2::scale_fill_manual(values = COLS) +
-      ggplot2::theme_light(base_size = 14) +
-      ggplot2::labs(
-        x = "NES (Normalized Enrichment Score)",
-        title = if (stringr::str_detect(NAME, "HALLMARK")) {
-          paste("Top", N_terms, "enriched hallmark gene sets")
-        } else {
-          paste("Top", N_terms, "enriched Reactome gene sets")
-        }
-      ) +
-      ggplot2::theme(
-        axis.title.y = ggplot2::element_blank(),
-        legend.position = "none"
-      )
-  } else {
-    # this can probably go, when the DeeDee devel branch hits main, but for now needs to stay
-    filter_col <- dplyr::case_when(
-      "FoldEnrichment" %in% names(FE) ~ "FoldEnrichment",
-      "GeneRatio" %in% names(FE) & "BgRatio" %in% names(FE) ~ "FoldEnrichment",
-      "gs_p.adjust" %in% names(FE) ~ "gs_p.adjust",
-      TRUE ~ "p.adjust"
-    )
-
-    if (filter_col == "FoldEnrichment" & !("FoldEnrichment" %in% names(FE))) {
-      FE <- FE %>%
-        dplyr::rowwise() %>%
-        dplyr::mutate(
-          GR = stringr::str_split(GeneRatio, "/") %>%
-            unlist() %>%
-            as.numeric() %>%
-            (\(x) x[[1]] / x[[2]]),
-          BR = stringr::str_split(BgRatio, "/") %>%
-            unlist() %>%
-            as.numeric() %>%
-            (\(x) x[[1]] / x[[2]])
-        ) %>%
-        dplyr::ungroup() %>%
-        dplyr::mutate(FoldEnrichment = GR / BR) %>%
-        dplyr::select(-GR, -BR)
-    }
-
-    if (filter_col == "FoldEnrichment") {
-      df <- FE %>%
-        dplyr::filter(!!rlang::sym(padj_col) < padj_CO) %>%
-        dplyr::slice_max(FoldEnrichment, n = N_terms) %>%
-        dplyr::mutate(
-          Description = forcats::fct_reorder(Description, FoldEnrichment),
-          dir = ifelse(stringr::str_detect(NAME, "[Uu][Pp]"), "Up", "Down")
-        )
-      p <- ggplot2::ggplot(
-        df,
-        ggplot2::aes(
-          FoldEnrichment,
-          Description,
-          text = stringr::str_wrap(
-            stringr::str_replace_all(geneID, "\\/", ", "),
-            width = 60
-          )
-        )
-      ) +
-        ggplot2::geom_col(ggplot2::aes(fill = dir)) +
-        ggplot2::scale_y_discrete(labels = \(x) {
-          stringr::str_wrap(x, width = 60)
-        }) +
-        ggplot2::scale_fill_manual(values = COLS) +
-        ggplot2::theme_light(base_size = 14) +
-        ggplot2::labs(
-          x = "Fold Enrichment over Background",
-          title = if (stringr::str_detect(NAME, "up")) {
-            paste("Top", N_terms, "upregulated GO Terms")
-          } else {
-            paste("Top", N_terms, "downregulated GO Terms")
-          }
-        ) +
-        ggplot2::theme(
-          axis.title.y = ggplot2::element_blank(),
-          legend.position = "none"
-        )
+        p <- ggplot2::ggplot(gsea_df, ggplot2::aes(NES, Description)) +
+            ggplot2::geom_col(ggplot2::aes(fill = dir)) +
+            ggplot2::scale_y_discrete(labels = \(x) {
+                stringr::str_wrap(x, width = 60)
+            }) +
+            ggplot2::scale_fill_manual(values = COLS) +
+            ggplot2::theme_light(base_size = 14) +
+            ggplot2::labs(
+                x = "NES (Normalized Enrichment Score)",
+                title = if (stringr::str_detect(NAME, "HALLMARK")) {
+                    paste("Top", N_terms, "enriched hallmark gene sets")
+                } else {
+                    paste("Top", N_terms, "enriched Reactome gene sets")
+                }
+            ) +
+            ggplot2::theme(
+                axis.title.y = ggplot2::element_blank(),
+                legend.position = "none"
+            )
     } else {
-      df <- FE %>%
-        dplyr::filter(!!rlang::sym(padj_col) < padj_CO) %>%
-        dplyr::slice_min(!!rlang::sym(filter_col), n = N_terms) %>%
-        dplyr::mutate(
-          padj = -log10(!!rlang::sym(filter_col)),
-          Description = forcats::fct_reorder(Description, padj),
-          dir = ifelse(stringr::str_detect(NAME, "[Uu][Pp]"), "Up", "Down")
+        # this can probably go, when the DeeDee devel branch hits main, but for now needs to stay
+        filter_col <- dplyr::case_when(
+            "FoldEnrichment" %in% names(FE) ~ "FoldEnrichment",
+            "GeneRatio" %in%
+                names(FE) &
+                "BgRatio" %in% names(FE) ~ "FoldEnrichment",
+            "gs_p.adjust" %in% names(FE) ~ "gs_p.adjust",
+            TRUE ~ "p.adjust"
         )
-      p <- ggplot2::ggplot(
-        df,
-        ggplot2::aes(
-          padj,
-          Description,
-          text = stringr::str_wrap(
-            stringr::str_replace_all(geneID, "\\/", ", "),
-            width = 60
-          )
-        )
-      ) +
-        ggplot2::geom_col(ggplot2::aes(fill = dir)) +
-        ggplot2::scale_y_discrete(labels = \(x) {
-          stringr::str_wrap(x, width = 60)
-        }) +
-        ggplot2::scale_fill_manual(values = COLS) +
-        ggplot2::theme_light(base_size = 14) +
-        ggplot2::labs(
-          x = "-log10 adjusted p-Value",
-          title = if (stringr::str_detect(NAME, "[Uu][Pp]")) {
-            paste("Top", N_terms, "upregulated GO Terms")
-          } else {
-            paste("Top", N_terms, "downregulated GO Terms")
-          }
-        ) +
-        ggplot2::theme(
-          axis.title.y = ggplot2::element_blank(),
-          legend.position = "none"
-        )
+
+        if (
+            filter_col == "FoldEnrichment" & !("FoldEnrichment" %in% names(FE))
+        ) {
+            FE <- FE %>%
+                dplyr::rowwise() %>%
+                dplyr::mutate(
+                    GR = stringr::str_split(GeneRatio, "/") %>%
+                        unlist() %>%
+                        as.numeric() %>%
+                        (\(x) x[[1]] / x[[2]]),
+                    BR = stringr::str_split(BgRatio, "/") %>%
+                        unlist() %>%
+                        as.numeric() %>%
+                        (\(x) x[[1]] / x[[2]])
+                ) %>%
+                dplyr::ungroup() %>%
+                dplyr::mutate(FoldEnrichment = GR / BR) %>%
+                dplyr::select(-GR, -BR)
+        }
+
+        if (filter_col == "FoldEnrichment") {
+            df <- FE %>%
+                dplyr::filter(!!rlang::sym(padj_col) < padj_CO) %>%
+                dplyr::slice_max(FoldEnrichment, n = N_terms) %>%
+                dplyr::mutate(
+                    Description = forcats::fct_reorder(
+                        Description,
+                        FoldEnrichment
+                    ),
+                    dir = ifelse(
+                        stringr::str_detect(NAME, "[Uu][Pp]"),
+                        "Up",
+                        "Down"
+                    )
+                )
+            p <- ggplot2::ggplot(
+                df,
+                ggplot2::aes(
+                    FoldEnrichment,
+                    Description,
+                    text = stringr::str_wrap(
+                        stringr::str_replace_all(geneID, "\\/", ", "),
+                        width = 60
+                    )
+                )
+            ) +
+                ggplot2::geom_col(ggplot2::aes(fill = dir)) +
+                ggplot2::scale_y_discrete(labels = \(x) {
+                    stringr::str_wrap(x, width = 60)
+                }) +
+                ggplot2::scale_fill_manual(values = COLS) +
+                ggplot2::theme_light(base_size = 14) +
+                ggplot2::labs(
+                    x = "Fold Enrichment over Background",
+                    title = if (stringr::str_detect(NAME, "up")) {
+                        paste("Top", N_terms, "upregulated GO Terms")
+                    } else {
+                        paste("Top", N_terms, "downregulated GO Terms")
+                    }
+                ) +
+                ggplot2::theme(
+                    axis.title.y = ggplot2::element_blank(),
+                    legend.position = "none"
+                )
+        } else {
+            df <- FE %>%
+                dplyr::filter(!!rlang::sym(padj_col) < padj_CO) %>%
+                dplyr::slice_min(!!rlang::sym(filter_col), n = N_terms) %>%
+                dplyr::mutate(
+                    padj = -log10(!!rlang::sym(filter_col)),
+                    Description = forcats::fct_reorder(Description, padj),
+                    dir = ifelse(
+                        stringr::str_detect(NAME, "[Uu][Pp]"),
+                        "Up",
+                        "Down"
+                    )
+                )
+            p <- ggplot2::ggplot(
+                df,
+                ggplot2::aes(
+                    padj,
+                    Description,
+                    text = stringr::str_wrap(
+                        stringr::str_replace_all(geneID, "\\/", ", "),
+                        width = 60
+                    )
+                )
+            ) +
+                ggplot2::geom_col(ggplot2::aes(fill = dir)) +
+                ggplot2::scale_y_discrete(labels = \(x) {
+                    stringr::str_wrap(x, width = 60)
+                }) +
+                ggplot2::scale_fill_manual(values = COLS) +
+                ggplot2::theme_light(base_size = 14) +
+                ggplot2::labs(
+                    x = "-log10 adjusted p-Value",
+                    title = if (stringr::str_detect(NAME, "[Uu][Pp]")) {
+                        paste("Top", N_terms, "upregulated GO Terms")
+                    } else {
+                        paste("Top", N_terms, "downregulated GO Terms")
+                    }
+                ) +
+                ggplot2::theme(
+                    axis.title.y = ggplot2::element_blank(),
+                    legend.position = "none"
+                )
+        }
     }
-  }
-  p_p <- plotly::ggplotly(p, tooltip = c("text")) %>%
-    plotly::layout(hovermode = "closest") %>%
-    plotly::style(textposition = "right")
-  return(p_p)
+    p_p <- plotly::ggplotly(p, tooltip = c("text")) %>%
+        plotly::layout(hovermode = "closest") %>%
+        plotly::style(textposition = "right")
+    return(p_p)
 }
 #' plots a volcano plot, highlights selected genes.
 #' @noRd
 .plot_volcano <- function(
-  RES,
-  NAME,
-  padj_CO = 0.05,
-  fc_CO = 1,
-  highlights = NULL,
-  COLS,
-  LABEL_TOP = TRUE,
-  TOPN = 5,
-  gene_var = "gene_id"
+    RES,
+    NAME,
+    padj_CO = 0.05,
+    fc_CO = 1,
+    highlights = NULL,
+    COLS,
+    LABEL_TOP = TRUE,
+    TOPN = 5,
+    gene_var = "gene_id"
 ) {
-  gene_var <- rlang::sym(gene_var)
-  # Prep data
-  volcano_df <- RES %>%
-    dplyr::filter(
-      !is.na(padj) & !is.na(log2FoldChange) & !is.infinite(log2FoldChange)
-    ) %>%
-    dplyr::mutate(gene_id = !!gene_var) %>%
-    dplyr::mutate(
-      highlighted = gene_id %in% highlights,
-      sig = dplyr::case_when(
-        padj < 0.05 & log2FoldChange > 1 ~ "Up",
-        padj < 0.05 & log2FoldChange < -1 ~ "Down",
-        TRUE ~ "NS"
-      )
-    ) %>%
-    dplyr::mutate(
-      display_category = dplyr::case_when(
-        highlighted ~ "Highlighted",
-        TRUE ~ sig
-      )
-    )
+    gene_var <- rlang::sym(gene_var)
+    # Prep data
+    volcano_df <- RES %>%
+        dplyr::filter(
+            !is.na(padj) & !is.na(log2FoldChange) & !is.infinite(log2FoldChange)
+        ) %>%
+        dplyr::mutate(gene_id = !!gene_var) %>%
+        dplyr::mutate(
+            highlighted = gene_id %in% highlights,
+            sig = dplyr::case_when(
+                padj < padj_CO & log2FoldChange > fc_CO ~ "Up",
+                padj < padj_CO & log2FoldChange < -fc_CO ~ "Down",
+                TRUE ~ "NS"
+            )
+        ) %>%
+        dplyr::mutate(
+            display_category = dplyr::case_when(
+                highlighted ~ "Highlighted",
+                TRUE ~ sig
+            )
+        )
 
-  # Identify top genes
-  genes_to_label <- data.frame()
-  if (LABEL_TOP && TOPN > 0) {
-    top_genes <- volcano_df %>%
-      dplyr::filter(sig != "NS" & !highlighted) %>%
-      dplyr::arrange(padj) %>%
-      utils::head(TOPN)
-    genes_to_label <- rbind(genes_to_label, top_genes)
-  }
+    # Identify top genes
+    genes_to_label <- data.frame()
+    if (LABEL_TOP && TOPN > 0) {
+        top_genes <- volcano_df %>%
+            dplyr::filter(sig != "NS" & !highlighted) %>%
+            dplyr::slice_min(padj, n = TOPN)
+        genes_to_label <- rbind(genes_to_label, top_genes)
+    }
 
-  # highlighted genes
-  if (length(highlights) > 0) {
-    highlighted_genes <- volcano_df %>%
-      dplyr::filter(highlighted)
-    genes_to_label <- rbind(genes_to_label, highlighted_genes)
-  }
+    # highlighted genes
+    if (length(highlights) > 0) {
+        highlighted_genes <- volcano_df %>%
+            dplyr::filter(highlighted)
+        genes_to_label <- rbind(genes_to_label, highlighted_genes)
+    }
 
-  # Reorder for plotly
-  volcano_df <- volcano_df %>%
-    dplyr::arrange(highlighted)
+    # Reorder for plotly
+    volcano_df <- volcano_df %>%
+        dplyr::arrange(highlighted)
 
-  #  plot
-  p <- ggplot2::ggplot(
-    volcano_df,
-    ggplot2::aes(
-      x = log2FoldChange,
-      y = -log10(padj),
-      color = display_category,
-      text = paste(
-        "log2 FC:",
-        round(log2FoldChange, 2),
-        "\nGene:",
-        gene_id,
-        "\nadjusted p-value:",
-        format(padj, digits = 4)
-      )
-    )
-  ) +
-    ggplot2::geom_point(ggplot2::aes(
-      size = highlighted,
-      alpha = ifelse(highlighted, 1, 0.6)
-    )) +
-    ggplot2::scale_size_manual(
-      values = c("TRUE" = 3, "FALSE" = 1.5),
-      guide = "none"
+    #  plot
+    p <- ggplot2::ggplot(
+        volcano_df,
+        ggplot2::aes(
+            x = log2FoldChange,
+            y = -log10(padj),
+            color = display_category,
+            text = paste(
+                "log2 FC:",
+                round(log2FoldChange, 2),
+                "\nGene:",
+                gene_id,
+                "\nadjusted p-value:",
+                format(padj, digits = 4)
+            )
+        )
     ) +
-    ggplot2::scale_alpha_identity() +
-    ggplot2::scale_color_manual(
-      values = COLS,
-      name = "Category",
-      breaks = c("Up", "Down", "Highlighted", "NS"),
-      labels = c(
-        "Up-regulated",
-        "Down-regulated",
-        "Highlighted",
-        "Not significant"
-      )
-    ) +
-    ggplot2::geom_vline(
-      xintercept = c(-fc_CO, fc_CO),
-      linetype = "dashed",
-      color = "grey30",
-      linewidth = 0.5
-    ) +
-    ggplot2::geom_hline(
-      yintercept = -log10(padj_CO),
-      linetype = "dashed",
-      color = "grey30",
-      linewidth = 0.5
-    ) +
-    ggplot2::labs(
-      x = "Log2 Fold Change",
-      y = "-Log10 Adjusted P-value",
-      title = if (!is.null(NAME)) {
-        paste("Volcano Plot:", NAME)
-      } else {
-        "Volcano Plot"
-      }
-    ) +
-    ggplot2::theme_minimal(base_size = 14) +
-    ggplot2::theme(
-      legend.position = "right",
-      panel.grid.minor = ggplot2::element_blank()
-    )
+        ggplot2::geom_point(ggplot2::aes(
+            size = highlighted,
+            alpha = ifelse(highlighted, 1, 0.6)
+        )) +
+        ggplot2::scale_size_manual(
+            values = c("TRUE" = 3, "FALSE" = 1.5),
+            guide = "none"
+        ) +
+        ggplot2::scale_alpha_identity() +
+        ggplot2::scale_color_manual(
+            values = COLS,
+            name = "Category",
+            breaks = c("Up", "Down", "Highlighted", "NS"),
+            labels = c(
+                "Up-regulated",
+                "Down-regulated",
+                "Highlighted",
+                "Not significant"
+            )
+        ) +
+        ggplot2::geom_vline(
+            xintercept = c(-fc_CO, fc_CO),
+            linetype = "dashed",
+            color = "grey30",
+            linewidth = 0.5
+        ) +
+        ggplot2::geom_hline(
+            yintercept = -log10(padj_CO),
+            linetype = "dashed",
+            color = "grey30",
+            linewidth = 0.5
+        ) +
+        ggplot2::labs(
+            x = "Log2 Fold Change",
+            y = "-Log10 Adjusted P-value",
+            title = if (!is.null(NAME)) {
+                paste("Volcano Plot:", NAME)
+            } else {
+                "Volcano Plot"
+            }
+        ) +
+        ggplot2::theme_minimal(base_size = 14) +
+        ggplot2::theme(
+            legend.position = "right",
+            panel.grid.minor = ggplot2::element_blank()
+        )
 
-  # Add labels
-  if (nrow(genes_to_label) > 0) {
-    p <- p +
-      ggplot2::geom_text(
-        data = genes_to_label,
-        ggplot2::aes(label = gene_id),
-        size = 5,
-        show.legend = FALSE
-      )
-  }
+    # Add labels
+    if (nrow(genes_to_label) > 0) {
+        p <- p +
+            ggplot2::geom_text(
+                data = genes_to_label,
+                ggplot2::aes(label = gene_id),
+                size = 5,
+                show.legend = FALSE
+            )
+    }
 
-  p_p <- plotly::ggplotly(p, tooltip = c("text")) %>%
-    plotly::layout(hovermode = "closest") %>%
-    plotly::style(textposition = "right")
+    p_p <- plotly::ggplotly(p, tooltip = c("text")) %>%
+        plotly::layout(hovermode = "closest") %>%
+        plotly::style(textposition = "right")
 
-  return(p_p)
+    return(p_p)
 }
 
 #' creates the expression plot; still needs work re: normalisation of counts
 #' @noRd
 .plot_expression <- function(SE, GENE, BY, LEVELS, PLOT_TYPE, GENE_VAR) {
-  # get the right row to plot
-  gene <- rownames(SummarizedExperiment::rowData(SE)[
-    which(
-      SummarizedExperiment::rowData(SE)[, GENE_VAR] == GENE
-    ),
-  ])[1]
+    # get the right row to plot
+    gene <- rownames(SummarizedExperiment::rowData(SE)[
+        which(
+            SummarizedExperiment::rowData(SE)[, GENE_VAR] == GENE
+        ),
+    ])[1]
 
-  if ("counts" %notin% SummarizedExperiment::assayNames(SE)) {
-    message("counts not found in assays, defaulting to first assay")
-    counts_data <- SummarizedExperiment::assay(SE)[[1]][gene, ]
-  } else if ("sizeFactor" %in% names(SummarizedExperiment::colData(SE))) {
-    counts_data <- SummarizedExperiment::assay(SE, "counts")
-    sf <- SummarizedExperiment::colData(SE)[, "sizeFactor"]
-    counts_data <- sweep(counts_data, 2, sf, "/")[gene, ]
-  } else {
-    counts_data <- SummarizedExperiment::assay(SE, "counts")[gene, ]
-  }
+    if ("counts" %notin% SummarizedExperiment::assayNames(SE)) {
+        message("counts not found in assays, defaulting to first assay")
+        counts_data <- SummarizedExperiment::assay(SE)[[1]][gene, ]
+    } else if ("sizeFactor" %in% names(SummarizedExperiment::colData(SE))) {
+        counts_data <- SummarizedExperiment::assay(SE, "counts")
+        sf <- SummarizedExperiment::colData(SE)[, "sizeFactor"]
+        counts_data <- sweep(counts_data, 2, sf, "/")[gene, ]
+    } else {
+        counts_data <- SummarizedExperiment::assay(SE, "counts")[gene, ]
+    }
 
-  plot_df <- data.frame(
-    s_a_m_p_l_e = colnames(SE),
-    expression = counts_data,
-    group = forcats::as_factor(SummarizedExperiment::colData(SE)[[
-      BY
-    ]])
-  ) %>%
-    dplyr::filter(group %in% LEVELS)
+    plot_df <- data.frame(
+        s_a_m_p_l_e = colnames(SE),
+        expression = counts_data,
+        group = forcats::as_factor(SummarizedExperiment::colData(SE)[[
+            BY
+        ]])
+    ) %>%
+        dplyr::filter(group %in% LEVELS)
 
-  p <- ggplot2::ggplot(
-    plot_df,
-    ggplot2::aes(
-      x = group,
-      y = expression,
-      fill = group,
-      text = s_a_m_p_l_e
-    )
-  ) +
-    ggplot2::labs(
-      title = paste("Expression:", GENE),
-      x = BY,
-      y = "Counts"
+    p <- ggplot2::ggplot(
+        plot_df,
+        ggplot2::aes(
+            x = group,
+            y = expression,
+            fill = group,
+            text = s_a_m_p_l_e
+        )
     ) +
-    ggplot2::scale_x_discrete(labels = \(x) {
-      stringr::str_wrap(stringr::str_replace_all(x, "_", " "), 10)
-    }) +
-    ggplot2::theme_minimal(base_size = 14) +
-    ggplot2::theme(legend.position = "none")
+        ggplot2::labs(
+            title = paste("Expression:", GENE),
+            x = BY,
+            y = "Counts"
+        ) +
+        ggplot2::scale_x_discrete(labels = \(x) {
+            stringr::str_wrap(stringr::str_replace_all(x, "_", " "), 10)
+        }) +
+        ggplot2::theme_minimal(base_size = 14) +
+        ggplot2::theme(legend.position = "none")
 
-  if (PLOT_TYPE == "box") {
-    p <- p +
-      ggplot2::geom_boxplot(alpha = 0.7) +
-      ggplot2::geom_jitter(width = 0.2, alpha = 0.5, size = 2)
-  } else {
-    p <- p +
-      ggplot2::geom_violin(alpha = 0.7) +
-      ggplot2::geom_jitter(width = 0.1, alpha = 0.5, size = 2)
-  }
+    if (PLOT_TYPE == "violin" && any(table(droplevels(plot_df$group)) < 2)) {
+        # group size check
+        shiny::showNotification(
+            "Some selected groups have fewer than two samples; showing a box plot instead of violin.",
+            type = "warning"
+        )
+        PLOT_TYPE <- "box"
+    }
+
+    if (PLOT_TYPE == "box") {
+        p <- p +
+            ggplot2::geom_boxplot(alpha = 0.7) +
+            ggplot2::geom_jitter(width = 0.2, alpha = 0.5, size = 2)
+    } else {
+        # removing the text geom from violin, cant handle it
+        p <- p +
+            ggplot2::geom_violin(ggplot2::aes(text = NULL), alpha = 0.7) +
+            ggplot2::geom_jitter(width = 0.1, alpha = 0.5, size = 2)
+    }
 }
 
 
 #' Creates some random data tio demonstrate the colData, PCA and expression elements.
 #' @noRd
 .create_demo_data <- function() {
-  n_genes <- 1000
-  n_samples <- 12
+    n_genes <- 1000
+    n_samples <- 12
 
-  # Simulate count data
-  counts <- matrix(
-    stats::rnbinom(n_genes * n_samples, mu = 100, size = 1 / 0.5),
-    nrow = n_genes
-  )
-  rownames(counts) <- paste0("GENE", seq_len(n_genes))
-  colnames(counts) <- paste0("Sample", seq_len(n_samples))
+    # Simulate count data
+    counts <- matrix(
+        stats::rnbinom(n_genes * n_samples, mu = 100, size = 1 / 0.5),
+        nrow = n_genes
+    )
+    rownames(counts) <- paste0("GENE", seq_len(n_genes))
+    colnames(counts) <- paste0("Sample", seq_len(n_samples))
 
-  # Add some differential expression
-  de_genes <- seq_len(100)
-  counts[de_genes, seq_len(6)] <- counts[de_genes, seq_len(6)] * 3
+    # Add some differential expression
+    de_genes <- seq_len(100)
+    counts[de_genes, seq_len(6)] <- counts[de_genes, seq_len(6)] * 3
 
-  # Sample metadata
-  colData <- S4Vectors::DataFrame(
-    condition = factor(rep(c("Control", "Treatment"), each = 6)),
-    batch = factor(rep(c("A", "B"), times = 6)),
-    replicate = rep(seq_len(6), times = 2)
-  )
-  rownames(colData) <- colnames(counts)
+    # Sample metadata
+    colData <- S4Vectors::DataFrame(
+        condition = factor(rep(c("Control", "Treatment"), each = 6)),
+        batch = factor(rep(c("A", "B"), times = 6)),
+        replicate = rep(seq_len(6), times = 2)
+    )
+    rownames(colData) <- colnames(counts)
 
-  # Gene metadata
-  rowData <- S4Vectors::DataFrame(
-    gene_id = rownames(counts),
-    gene_name = paste0("Gene_", seq_len(n_genes))
-  )
+    # Gene metadata
+    rowData <- S4Vectors::DataFrame(
+        gene_id = rownames(counts),
+        gene_name = paste0("Gene_", seq_len(n_genes))
+    )
 
-  SummarizedExperiment::SummarizedExperiment(
-    assays = list(counts = counts),
-    colData = colData,
-    rowData = rowData
-  )
+    SummarizedExperiment::SummarizedExperiment(
+        assays = list(counts = counts),
+        colData = colData,
+        rowData = rowData
+    )
 }
 
 #' creates fc-fc plots
 #' @noRd
 .plot_fcfc <- function(
-  OBJ,
-  NAME,
-  PARTNER_NAME,
-  GENE_VAR = "SYMBOL",
-  GENE_VARS = c("SYMBOL"),
-  padj_CO = 0.05,
-  fc_CO = 1,
-  COLS = rev(c("red", "blue", "purple", "grey")),
-  LABEL_TOP = TRUE,
-  TOPN = 5
+    OBJ,
+    NAME,
+    PARTNER_NAME,
+    GENE_VAR = "SYMBOL",
+    GENE_VARS = c("SYMBOL"),
+    padj_CO = 0.05,
+    fc_CO = 1,
+    COLS = rev(c("red", "blue", "purple", "grey")),
+    LABEL_TOP = TRUE,
+    TOPN = 5
 ) {
-  COLS <- COLS |>
-    purrr::set_names(c(NAME, PARTNER_NAME, "ns", "both"))
-  gene_var <- rlang::sym(GENE_VAR)
+    COLS <- COLS |>
+        purrr::set_names(c(NAME, PARTNER_NAME, "ns", "both"))
+    gene_var <- rlang::sym(GENE_VAR)
 
-  df_a <- .de_result(OBJ, NAME = NAME) |>
-    tibble::rownames_to_column("gene_ident")
+    df_a <- .de_result(OBJ, NAME = NAME) |>
+        tibble::rownames_to_column("gene_ident")
 
-  df_b <- .de_result(OBJ, NAME = PARTNER_NAME) |>
-    tibble::rownames_to_column("gene_ident")
+    df_b <- .de_result(OBJ, NAME = PARTNER_NAME) |>
+        tibble::rownames_to_column("gene_ident")
 
-  df_list <- list(df_a, df_b) |>
-    purrr::set_names(c(NAME, PARTNER_NAME)) |>
-    purrr::map(\(x) {
-      dplyr::filter(
-        x,
-        !is.na(padj),
-        !is.na(log2FoldChange),
-        !is.infinite(log2FoldChange)
-      )
-    }) |>
-    purrr::imap(\(DF, .NAME) {
-      dplyr::mutate(
-        DF,
-        sig = ifelse(padj < padj_CO & abs(log2FoldChange) > fc_CO, .NAME, "ns")
-      )
-    })
+    df_list <- list(df_a, df_b) |>
+        purrr::set_names(c(NAME, PARTNER_NAME)) |>
+        purrr::map(\(x) {
+            dplyr::filter(
+                x,
+                !is.na(padj),
+                !is.na(log2FoldChange),
+                !is.infinite(log2FoldChange)
+            )
+        }) |>
+        purrr::imap(\(DF, .NAME) {
+            dplyr::mutate(
+                DF,
+                sig = ifelse(
+                    padj < padj_CO & abs(log2FoldChange) > fc_CO,
+                    .NAME,
+                    "ns"
+                )
+            )
+        })
 
-  df_comb <- dplyr::left_join(
-    df_list[[NAME]],
-    df_list[[PARTNER_NAME]],
-    by = dplyr::join_by(gene_ident),
-    suffix = paste0("_", c("A", "B"))
-  ) |>
-    dplyr::mutate(
-      sig = dplyr::case_when(
-        sig_A == "ns" & sig_B == "ns" ~ "ns",
-        sig_A == NAME & sig_B == PARTNER_NAME ~ "both",
-        sig_A == "ns" ~ PARTNER_NAME,
-        sig_B == "ns" ~ NAME
-      ) |>
-        forcats::fct_relevel("ns", "both", PARTNER_NAME)
+    df_comb <- dplyr::left_join(
+        df_list[[NAME]],
+        df_list[[PARTNER_NAME]],
+        by = dplyr::join_by(gene_ident),
+        suffix = paste0("_", c("A", "B"))
     ) |>
-    dplyr::select(-sig_A, -sig_B) |>
-    dplyr::filter(!is.na(sig))
+        dplyr::mutate(
+            sig = dplyr::case_when(
+                sig_A == "ns" & sig_B == "ns" ~ "ns",
+                sig_A == NAME & sig_B == PARTNER_NAME ~ "both",
+                sig_A == "ns" ~ PARTNER_NAME,
+                sig_B == "ns" ~ NAME
+            ) |>
+                forcats::fct_relevel("ns", "both", PARTNER_NAME)
+        ) |>
+        dplyr::select(-sig_A, -sig_B) |>
+        dplyr::filter(!is.na(sig))
 
-  merging_data <- SummarizedExperiment::rowData(OBJ) |>
-    as.data.frame() |>
-    dplyr::select(tidyselect::any_of(GENE_VARS)) |>
-    tibble::rownames_to_column("gene_ident")
+    merging_data <- SummarizedExperiment::rowData(OBJ) |>
+        as.data.frame() |>
+        dplyr::select(tidyselect::any_of(GENE_VARS)) |>
+        tibble::rownames_to_column("gene_ident")
 
-  df_comb <- merging_data |>
-    dplyr::inner_join(df_comb, by = dplyr::join_by(gene_ident)) |>
-    dplyr::mutate(gene_id = !!gene_var)
+    df_comb <- merging_data |>
+        dplyr::inner_join(df_comb, by = dplyr::join_by(gene_ident)) |>
+        dplyr::mutate(gene_id = !!gene_var)
 
-  p <- ggplot2::ggplot(
-    df_comb,
-    ggplot2::aes(
-      log2FoldChange_A,
-      log2FoldChange_B,
-      color = sig,
-      text = paste(
-        "Gene:",
-        gene_id,
-        "\n",
-        paste("logFC", NAME),
-        round(log2FoldChange_A, 2),
-        "\n",
-        paste("logFC", PARTNER_NAME),
-        round(log2FoldChange_B, 2)
-      )
-    )
-  ) +
-    ggplot2::geom_point() +
-    ggplot2::scale_color_manual(values = COLS) +
-    ggplot2::labs(
-      x = paste("logFC", NAME),
-      y = paste("logFC", PARTNER_NAME),
-      color = "Signficant in:"
+    p <- ggplot2::ggplot(
+        df_comb,
+        ggplot2::aes(
+            log2FoldChange_A,
+            log2FoldChange_B,
+            color = sig,
+            text = paste(
+                "Gene:",
+                gene_id,
+                "\n",
+                paste("logFC", NAME),
+                round(log2FoldChange_A, 2),
+                "\n",
+                paste("logFC", PARTNER_NAME),
+                round(log2FoldChange_B, 2)
+            )
+        )
     ) +
-    ggplot2::theme_minimal(base_size = 14)
+        ggplot2::geom_point() +
+        ggplot2::scale_color_manual(values = COLS) +
+        ggplot2::labs(
+            x = paste("logFC", NAME),
+            y = paste("logFC", PARTNER_NAME),
+            color = "Signficant in:"
+        ) +
+        ggplot2::theme_minimal(base_size = 14)
 
-  p <- plotly::ggplotly(p, tooltip = c("text"))
-  return(p)
+    p <- plotly::ggplotly(p, tooltip = c("text"))
+    return(p)
 }

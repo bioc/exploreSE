@@ -314,16 +314,7 @@ server <- function(input, output, session) {
     vst_data = NULL,
     pca_result = NULL,
     de_results = NULL,
-    # up_col = "#d62728",
-    # dn_col = "#1f77b4",
-    # highlight_col = "#FFD700",
-    # both_col = "#ce1ae6",
-    # comp1_col = "#0a31db",
-    # comp2_col = "#f03405",
-    # color_var = NULL,
-    # row_var = NULL,
     gene_idents = NULL,
-    # second_comparison = NULL
   )
 
   has_precomputed_de <- shiny::reactive({
@@ -337,7 +328,6 @@ server <- function(input, output, session) {
   })
 
   # run observers --------------
-  # .create_dir_color_observers(input, session, rv)
   .create_interest_color_observers(input, session, rv)
   .observe_demo_data(input, session, rv)
   .observe_inital_obj(input, session, rv)
@@ -791,11 +781,6 @@ server <- function(input, output, session) {
     de_data <- current_de_results()
     shiny::req(
       de_data,
-      # input$padj_cutoff_volcano,
-      # input$lfc_cutoff_volcano,
-      # input$up_col,
-      # input$dn_col,
-      # input$highlight_col,
       input$row_data_var
     )
     colors_acute <- c(
@@ -876,20 +861,6 @@ server <- function(input, output, session) {
       "ns" = "grey70",
       "both" = input$both_col
     )
-
-    #     highlight_vec <- c()
-    #     if (
-    #         !is.null(input$highlight_genes) &&
-    #             nchar(trimws(input$highlight_genes)) > 0
-    #     ) {
-    #         # Split by newlines and commas, trim whitespace
-    #         highlight_vec <- input$highlight_genes %>%
-    #             strsplit("[\n,]") %>%
-    #             unlist() %>%
-    #             trimws() %>%
-    #             .[nchar(.) > 0]
-    #     }
-
     .plot_fcfc(
       OBJ = rv$se,
       NAME = input$de_comparison,

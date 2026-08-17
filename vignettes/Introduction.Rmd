@@ -23,7 +23,16 @@ knitr::opts_chunk$set(
 ```
 
 # Introduction 
-exploreSE is package that provides an interactive Shiny-based user interface for exploring transcriptional data and anaylsis results stored in [summarizedExperiment](https://www.bioconductor.org/packages/release/bioc/html/tidySummarizedExperiment.html) or [DeeDeeExperiment](https://bioconductor.org/packages//release/bioc/html/DeeDeeExperiment.html) format. The aim is to facilitate easy comparison between different model apporaches on a single data set. 
+exploreSE is package that provides an interactive Shiny-based user interface for exploring transcriptional data and analysis results stored in [summarizedExperiment](https://www.bioconductor.org/packages/release/bioc/html/tidySummarizedExperiment.html) or [DeeDeeExperiment](https://bioconductor.org/packages//release/bioc/html/DeeDeeExperiment.html) format. The aim is to facilitate easy comparison between different model approaches on a single data set. 
+
+The package can be installed via the `BiocManager` by starting R and running: 
+```{r install, eval = FALSE}
+if (!requireNamespace("BiocManager", quietly = TRUE)) {
+  install.packages("BiocManager")
+}
+
+BiocManager::install("exploreSE")
+```
 
 Once installed, the packages can be accessed through the following bit of code:
 
@@ -40,7 +49,7 @@ example(exploreSE, ask = FALSE)
 
 
 # Setting up the data
-For the purposes of this example, we'll be using the `airway` data [citiation]. It is part of the [airway](https://www.bioconductor.org/packages/release/data/experiment/html/airway.html) package, containing RNA-Seq data from different airway smooth muscle cell lines either untreated or treated with dexamethasone.
+For the purposes of this example, we'll be using the `airway` data. It is part of the [airway](https://www.bioconductor.org/packages/release/data/experiment/html/airway.html) package, containing RNA-Seq data from different airway smooth muscle cell lines either untreated or treated with dexamethasone.
 
 ```{r airway-dataset}
 library(airway)
@@ -76,7 +85,7 @@ airway <- DESeq(airway)
 baseline <- results(airway)
 ```
 
-In addition, we'll build a second model, where we control for the effect of the cell line: 
+In addition, we'll build a second model, where we control for the effect of the cell line, stored in the `cell` variable: 
 
 ```{r example_adding_controlled}
 design(airway) <- ~ cell + dex
@@ -84,7 +93,7 @@ airway <- DESeq(airway)
 cell_controlled <- results(airway)
 ```
 
-Using the [DeeDeeExperiment](https://bioconductor.org/packages//release/bioc/html/DeeDeeExperiment.html) package, we will store these results in the theuir respective slots. 
+Using the [DeeDeeExperiment](https://bioconductor.org/packages//release/bioc/html/DeeDeeExperiment.html) package, we will store these results in the their respective slots. 
 
 ```{r example_deedee}
 library(DeeDeeExperiment)
@@ -99,7 +108,7 @@ Let's take a look:
 airway
 ```
 
-In addition to differential expression anaylsis, we can also explore some biological data mining, in this case GO ORA. Here we use the `get.gos()` function from the `exploreSE` package, but it jsut populates the FEA slot of the DeeDeeExperiment. 
+In addition to differential expression anaylsis, we can also explore some biological data mining, in this case GO ORA. Here we use the `get.gos()` function from the `exploreSE` package, but it just populates the FEA slot of the DeeDeeExperiment. 
 
 
 ```{r example_gos}
@@ -163,10 +172,10 @@ The heart of this application is the comparison of different possible models and
 
 ![Differential expression overview for the baseline model.](screenshots/de_baseline.png)
 
-On the topof the page, a little overview indicates all the comparisons found in the respective slots. 
-Below, a barchart indicates the number oif differentially expressed genes. The specifics of the results can looked up in a table below and exported. 
+On the top of the page, a little overview indicates all the comparisons found in the respective slots. 
+Below, a barchart indicates the number of differentially expressed genes. The specifics of the results can looked up in a table below and exported. 
 
-This view also exists for each comparison; selecting a different comparison from the drop-down menu on th eleft hand side refreshes the view:
+This view also exists for each comparison; selecting a different comparison from the drop-down menu on the left hand side refreshes the view:
 
 ![Differential expression overview for the cell-controlled model.](screenshots/de_controlled.png)
 
@@ -195,9 +204,9 @@ Direct comparison of fold changes across models can generate insights into the d
 # FAQ
 
 **Q: How do I add results into the summarizedExperiment?**
-A: The easiest way is to use the `DeeDeeExperiment` extension of the `summarizedExperiment` class. You can use the dedicated DEA and FEA solts. There is a detailed explanation [here](https://bioconductor.org/packages//release/bioc/vignettes/DeeDeeExperiment/inst/doc/DeeDeeExperiment_manual.html). If you do not want that, you can add it to the `summarizedExperiment` metadata, using `de-results`and `fe_results`as names. 
-**Q: can I use the explorer to perform analyis?**
-A: No, this app is only design to visualise already performed analyses. All decisions on what to test, what enrichmenrs to run should happen before you start the app and make use of the package. 
+A: The easiest way is to use the `DeeDeeExperiment` extension of the `summarizedExperiment` class. You can use the dedicated DEA and FEA slots. There is a detailed explanation [here](https://bioconductor.org/packages//release/bioc/vignettes/DeeDeeExperiment/inst/doc/DeeDeeExperiment_manual.html). If you do not want that, you can add it to the `summarizedExperiment` metadata, using `de-results`and `fe_results`as names. 
+**Q: can I use the explorer to perform analysis?**
+A: No, this app is only design to visualise already performed analyses. All decisions on what to test, what enrichments to run should happen before you start the app and make use of the package. 
 
 # Session Info
 

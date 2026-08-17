@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of exploreSE is to create and maintian a shiny app for transcriptomic results presentation. It heavily relies on the [SummarizedExperiment](https://www.bioconductor.org/packages/release/bioc/html/SummarizedExperiment.html) and [DeeDeeExperiment](https://bioconductor.org/packages//release/bioc/html/DeeDeeExperiment.html) packages on bioconductor. 
+The goal of exploreSE is to create and maintain a shiny app for transcriptomic results presentation. It heavily relies on the [SummarizedExperiment](https://www.bioconductor.org/packages/release/bioc/html/SummarizedExperiment.html) and [DeeDeeExperiment](https://bioconductor.org/packages//release/bioc/html/DeeDeeExperiment.html) packages on bioconductor. 
 
 ## Installation
 
@@ -46,7 +46,7 @@ airway <- DESeqDataSet(airway, design = ~dex)
 airway <- DESeq(airway)
 baseline <- results(airway)
 
-airway <- DESeqDataSet(airway, design = ~dex + cell)
+airway <- DESeqDataSet(airway, design = ~ dex + cell)
 airway <- DESeq(airway)
 cell_controlled <- results(airway)
 ```
@@ -73,7 +73,7 @@ airway
 With the enrichments added, we can now call our shiny app for exploration! (Note: this is a work in progress, I still need to figure out how to properly show this in the vignette)
 ```{r}
 app <- exploreSE()
-if(interactive()){
+if (interactive()) {
   shiny::runApp(app, port = 1234)
 }
 ```
