@@ -11,3 +11,6 @@
 * fixed various typos
 * added installation instructions to the vignette
 * removed unused code
+
+# exploreSE 0.99.5
+* fixed R dependency in the description file

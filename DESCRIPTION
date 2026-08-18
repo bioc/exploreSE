@@ -1,6 +1,6 @@
 Package: exploreSE
 Title: Explorer for Your Bulk RNA Seq Analyses
-Version: 0.99.4
+Version: 0.99.5
 Authors@R: 
     person("Jasper", "Spitzer", , "jasspitzer135@gmail.com", 
         role = c("aut", "cre"), comment = c(ORCID="0000-0001-9696-2092"))
@@ -12,7 +12,7 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 Depends:
-    R (>= 4.1.0)
+    R (>= 4.6.0)
 Imports: 
     BiocGenerics,
     clusterProfiler,
