@@ -278,7 +278,9 @@ shiny::runApp(app, port = 1234)
 ```
 
 <figure>
-<img src="screenshots/opening_view.png" alt="Opening View." />
+<img
+src="https://github.com/jaspitzer/exploreSE/tree/master/vignettes/screenshots/opening_view.png"
+alt="Opening View." />
 <figcaption aria-hidden="true">Opening View.</figcaption>
 </figure>
 
@@ -311,7 +313,8 @@ are plotted
 ## PCA view
 
 Progressing through the app, you can navigate to the PCA rider. ![View
-of the PCA rider](screenshots/pca_baseline.png)
+of the PCA
+rider](https://github.com/jaspitzer/exploreSE/tree/master/vignettes/screenshots/pca_baseline.png)
 
 You can select the coloring scheme of the the points in the drop down
 menu, as well as how many genes are used to calculate the PCA. In the
@@ -320,7 +323,8 @@ variable, is the primary variable of interest, but you can also select
 other from the dropdown menu.
 
 <figure>
-<img src="screenshots/pca_dex.png"
+<img
+src="https://github.com/jaspitzer/exploreSE/tree/master/vignettes/screenshots/pca_dex.png"
 alt="Alternate coloring of the PCA" />
 <figcaption aria-hidden="true">Alternate coloring of the
 PCA</figcaption>
@@ -337,7 +341,8 @@ dropdown, which is searchable. Any values visible in the plot can be
 exported from the table below.
 
 <figure>
-<img src="screenshots/expression.png"
+<img
+src="https://github.com/jaspitzer/exploreSE/tree/master/vignettes/screenshots/expression.png"
 alt="Overview of the Gene Expression panel" />
 <figcaption aria-hidden="true">Overview of the Gene Expression
 panel</figcaption>
@@ -349,7 +354,8 @@ The heart of this application is the comparison of different possible
 models and within this tab, we are starting that process.
 
 <figure>
-<img src="screenshots/de_baseline.png"
+<img
+src="https://github.com/jaspitzer/exploreSE/tree/master/vignettes/screenshots/de_baseline.png"
 alt="Differential expression overview for the baseline model." />
 <figcaption aria-hidden="true">Differential expression overview for the
 baseline model.</figcaption>
@@ -365,7 +371,8 @@ comparison from the drop-down menu on the left hand side refreshes the
 view:
 
 <figure>
-<img src="screenshots/de_controlled.png"
+<img
+src="https://github.com/jaspitzer/exploreSE/tree/master/vignettes/screenshots/de_controlled.png"
 alt="Differential expression overview for the cell-controlled model." />
 <figcaption aria-hidden="true">Differential expression overview for the
 cell-controlled model.</figcaption>
@@ -377,7 +384,8 @@ A graphical overview over the differential expression can be found in
 the Volcano Plot tab.
 
 <figure>
-<img src="screenshots/volcano_baseline.png"
+<img
+src="https://github.com/jaspitzer/exploreSE/tree/master/vignettes/screenshots/volcano_baseline.png"
 alt="Volcano plot of the baseline model." />
 <figcaption aria-hidden="true">Volcano plot of the baseline
 model.</figcaption>
@@ -396,7 +404,8 @@ are altered in a given comparison. These results are visualised in the
 Enrichment Results tab.
 
 <figure>
-<img src="screenshots/gos_baseline.png"
+<img
+src="https://github.com/jaspitzer/exploreSE/tree/master/vignettes/screenshots/gos_baseline.png"
 alt="Enrichment results for the baseline model." />
 <figcaption aria-hidden="true">Enrichment results for the baseline
 model.</figcaption>
@@ -414,7 +423,7 @@ into the differences. For this, two models can be selected and their
 respective fold changes plotted against each other.
 
 ![FC-FC plot of the baseline and cell-controlled
-models.](screenshots/fc_fc.png)\]
+models.](https://github.com/jaspitzer/exploreSE/tree/master/vignettes/screenshots/fc_fc.png)\]
 
 # FAQ
 
