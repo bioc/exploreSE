@@ -106,7 +106,7 @@ airway
 In addition to differential expression anaylsis, we can also explore some biological data mining, in this case GO ORA. Here we use the `get.gos()` function from the `exploreSE` package, but it just populates the FEA slot of the DeeDeeExperiment. 
 
 
-```{r example_gos}
+```{r example_gos, warnings = FALSE, messages=FALSE}
 airway <- get.gos(obj = airway, NAME = "baseline", gene_type = "ENSEMBL")
 airway <- get.gos(obj = airway, NAME = "cell_controlled", gene_type = "ENSEMBL")
 ```
