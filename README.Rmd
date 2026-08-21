@@ -125,7 +125,7 @@ app <- exploreSE(object = airway)
 shiny::runApp(app, port = 1234)
 ```
 
-![Opening View.](https://github.com/jaspitzer/exploreSE/tree/master/vignettes/screenshots/opening_view.png)
+![Opening View.](https://github.com/jaspitzer/exploreSE/tree/master/vignettes/screenshots/opening_view.png "testing")
 
 After starting the app, you are created with an overview of the metadata in the `colData` of the relevant `summarizedExperiment`, as well as a search- and scrollable view of the same table. 
 On the left hand side, you can load in a different object from the local environment if desired under the "Data Input header" - should you start up the app without any data, the "Use Demo Data" checkbox will be checked and some demo data will be generated for you. 

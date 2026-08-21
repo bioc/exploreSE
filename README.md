@@ -228,16 +228,32 @@ the FEA slot of the DeeDeeExperiment.
 airway <- get.gos(obj = airway, NAME = "baseline", gene_type = "ENSEMBL")
 #> 
 #> 
+#> 'select()' returned 1:many mapping between keys and columns
+#> 'select()' returned 1:many mapping between keys and columns
+#> 'select()' returned 1:many mapping between keys and columns
+#> 'select()' returned 1:many mapping between keys and columns
+#> 'select()' returned 1:many mapping between keys and columns
+#> 'select()' returned 1:many mapping between keys and columns
 #> Found 5112 gene sets in `enrichResult` object, of which 57 are significant.
 #> Converting for usage within the DeeDeeExperiment framework...
 #> ✔ Renamed FEA entries: "up_go" to "baseline_up_go"
+#> 'select()' returned 1:many mapping between keys and columns
+#> 'select()' returned 1:many mapping between keys and columns
 #> Found 5112 gene sets in `enrichResult` object, of which 77 are significant.
 #> Converting for usage within the DeeDeeExperiment framework...
 #> ✔ Renamed FEA entries: "dn_go" to "baseline_down_go"
 airway <- get.gos(obj = airway, NAME = "cell_controlled", gene_type = "ENSEMBL")
+#> 'select()' returned 1:many mapping between keys and columns
+#> 'select()' returned 1:many mapping between keys and columns
+#> 'select()' returned 1:many mapping between keys and columns
+#> 'select()' returned 1:many mapping between keys and columns
+#> 'select()' returned 1:many mapping between keys and columns
+#> 'select()' returned 1:many mapping between keys and columns
 #> Found 5079 gene sets in `enrichResult` object, of which 118 are significant.
 #> Converting for usage within the DeeDeeExperiment framework...
 #> ✔ Renamed FEA entries: "up_go" to "cell_controlled_up_go"
+#> 'select()' returned 1:many mapping between keys and columns
+#> 'select()' returned 1:many mapping between keys and columns
 #> Found 5079 gene sets in `enrichResult` object, of which 32 are significant.
 #> Converting for usage within the DeeDeeExperiment framework...
 #> ✔ Renamed FEA entries: "dn_go" to "cell_controlled_down_go"
@@ -280,7 +296,7 @@ shiny::runApp(app, port = 1234)
 <figure>
 <img
 src="https://github.com/jaspitzer/exploreSE/tree/master/vignettes/screenshots/opening_view.png"
-alt="Opening View." />
+title="testing" alt="Opening View." />
 <figcaption aria-hidden="true">Opening View.</figcaption>
 </figure>
 
