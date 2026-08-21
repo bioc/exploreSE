@@ -17,64 +17,110 @@ knitr::opts_chunk$set(
 
 <!-- badges: start -->
 <!-- badges: end -->
+ 
+exploreSE is package that provides an interactive Shiny-based user interface for exploring transcriptional data and analysis results stored in [summarizedExperiment](https://www.bioconductor.org/packages/release/bioc/html/tidySummarizedExperiment.html) or [DeeDeeExperiment](https://bioconductor.org/packages//release/bioc/html/DeeDeeExperiment.html) format. The aim is to facilitate easy comparison between different model approaches on a single data set. 
 
-The goal of exploreSE is to create and maintain a shiny app for transcriptomic results presentation. It heavily relies on the [SummarizedExperiment](https://www.bioconductor.org/packages/release/bioc/html/SummarizedExperiment.html) and [DeeDeeExperiment](https://bioconductor.org/packages//release/bioc/html/DeeDeeExperiment.html) packages on bioconductor. 
+The package can be installed via the `BiocManager` by starting R and running: 
+```{r install, eval = FALSE}
+if (!requireNamespace("BiocManager", quietly = TRUE)) {
+  install.packages("BiocManager")
+}
 
-## Installation
-
-You can install the development version of exploreSE from [GitHub](https://github.com/) with:
-
-``` r
-# install.packages("pak")
-pak::pak("jaspitzer/exploreSE")
+BiocManager::install("exploreSE")
 ```
 
-## Example
+Once installed, the packages can be accessed through the following bit of code:
 
-Let's say you've loaded in your data and created two separate models:
-
-```{r example}
+```{r library, message=FALSE}
 library(exploreSE)
-library(airway)
-library(DeeDeeExperiment)
-library(DESeq2)
-data(airway)
 ```
 
-```{r}
+To explore the results of differential expression analysis, we need to organise them in the structure and you will learn how to do that in this vignette. If you want to explore on your own, you can  run the following code and start exploring the example data.
+
+```{r quickstart, eval=FALSE}
+example(exploreSE, ask = FALSE)
+```
+
+
+
+# Setting up the data
+For the purposes of this example, we'll be using the `airway` data. It is part of the [airway](https://www.bioconductor.org/packages/release/data/experiment/html/airway.html) package, containing RNA-Seq data from different airway smooth muscle cell lines either untreated or treated with dexamethasone.
+
+```{r airway-dataset, message=FALSE}
+library(airway)
+data(airway)
+airway
+```
+
+Out of the box, the `airway` object is `summarizedExperiment` object, containing eight samples from four cell lines. This information is available in `coldata(airway)`.
+
+```{r coldata_example}
+colData(airway)
+```
+
+In this vignette, we will subset `airway` to only contain protein-coding genes. The required information is stored in its `rowData`, accessible through `rowData(airway)`.
+
+```{r rowdata_example}
+rowData(airway)
+```
+
+```{r example_filtering}
+dim(airway)
+airway <- airway[rowData(airway)$gene_biotype == "protein_coding", ]
+dim(airway)
+```
+
+Let's start our anaylsis. Using the [DESeq2](https://bioconductor.org/packages/release/bioc/html/DESeq2.html) package, we will convert airway into an `DESeqDataSet` and build a simple model based the dexamethasone stimulation stored in the `dex` variable. 
+
+
+```{r example_adding_baseline}
+library(DESeq2)
 airway <- DESeqDataSet(airway, design = ~dex)
 airway <- DESeq(airway)
 baseline <- results(airway)
+```
 
-airway <- DESeqDataSet(airway, design = ~ dex + cell)
+In addition, we'll build a second model, where we control for the effect of the cell line, stored in the `cell` variable: 
+
+```{r example_adding_controlled}
+design(airway) <- ~ cell + dex
 airway <- DESeq(airway)
 cell_controlled <- results(airway)
 ```
 
-These results can be added to the DeeDeeExperiment
-```{r}
-airway <- addDEA(DeeDeeExperiment(airway), baseline)
+Using the [DeeDeeExperiment](https://bioconductor.org/packages//release/bioc/html/DeeDeeExperiment.html) package, we will store these results in the their respective slots. 
+
+```{r example_deedee}
+library(DeeDeeExperiment)
+airway <- DeeDeeExperiment(airway)
+airway <- addDEA(airway, baseline)
 airway <- addDEA(airway, cell_controlled)
 ```
 
-```{r}
+Let's take a look:
+
+```{r example_structure_showcase}
 airway
 ```
 
-```{r}
+In addition to differential expression anaylsis, we can also explore some biological data mining, in this case GO ORA. Here we use the `get.gos()` function from the `exploreSE` package, but it just populates the FEA slot of the DeeDeeExperiment. 
+
+
+```{r example_gos}
 airway <- get.gos(obj = airway, NAME = "baseline", gene_type = "ENSEMBL")
 airway <- get.gos(obj = airway, NAME = "cell_controlled", gene_type = "ENSEMBL")
 ```
 
-```{r}
+```{r example_showcase_with_gos}
 airway
 ```
 
-With the enrichments added, we can now call our shiny app for exploration! (Note: this is a work in progress, I still need to figure out how to properly show this in the vignette)
-```{r}
-app <- exploreSE()
-if (interactive()) {
-  shiny::runApp(app, port = 1234)
-}
-```
+Now that our data is ready, we can explore the data. 
 
+# Launching the App
+The simplest way to launch the app is through a call to the `exploreSE()` function. Without any arguments, the app opens and you can load in any .RDS file. Alternatively, you can supply the `file` argument, defining the path to the file, or the `object` argument when you have the object already loaded.
+
+```{r running_the_app, eval=FALSE}
+app <- exploreSE(object = airway)
+shiny::runApp(app, port = 1234)
+```
