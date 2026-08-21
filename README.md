@@ -228,32 +228,16 @@ the FEA slot of the DeeDeeExperiment.
 airway <- get.gos(obj = airway, NAME = "baseline", gene_type = "ENSEMBL")
 #> 
 #> 
-#> 'select()' returned 1:many mapping between keys and columns
-#> 'select()' returned 1:many mapping between keys and columns
-#> 'select()' returned 1:many mapping between keys and columns
-#> 'select()' returned 1:many mapping between keys and columns
-#> 'select()' returned 1:many mapping between keys and columns
-#> 'select()' returned 1:many mapping between keys and columns
 #> Found 5112 gene sets in `enrichResult` object, of which 57 are significant.
 #> Converting for usage within the DeeDeeExperiment framework...
 #> ✔ Renamed FEA entries: "up_go" to "baseline_up_go"
-#> 'select()' returned 1:many mapping between keys and columns
-#> 'select()' returned 1:many mapping between keys and columns
 #> Found 5112 gene sets in `enrichResult` object, of which 77 are significant.
 #> Converting for usage within the DeeDeeExperiment framework...
 #> ✔ Renamed FEA entries: "dn_go" to "baseline_down_go"
 airway <- get.gos(obj = airway, NAME = "cell_controlled", gene_type = "ENSEMBL")
-#> 'select()' returned 1:many mapping between keys and columns
-#> 'select()' returned 1:many mapping between keys and columns
-#> 'select()' returned 1:many mapping between keys and columns
-#> 'select()' returned 1:many mapping between keys and columns
-#> 'select()' returned 1:many mapping between keys and columns
-#> 'select()' returned 1:many mapping between keys and columns
 #> Found 5079 gene sets in `enrichResult` object, of which 118 are significant.
 #> Converting for usage within the DeeDeeExperiment framework...
 #> ✔ Renamed FEA entries: "up_go" to "cell_controlled_up_go"
-#> 'select()' returned 1:many mapping between keys and columns
-#> 'select()' returned 1:many mapping between keys and columns
 #> Found 5079 gene sets in `enrichResult` object, of which 32 are significant.
 #> Converting for usage within the DeeDeeExperiment framework...
 #> ✔ Renamed FEA entries: "dn_go" to "cell_controlled_down_go"
@@ -295,7 +279,7 @@ shiny::runApp(app, port = 1234)
 
 <figure>
 <img
-src="https://github.com/jaspitzer/exploreSE/tree/master/vignettes/screenshots/opening_view.png"
+src="https://raw.githubusercontent.com/jaspitzer/exploreSE/master/vignettes/screenshots/opening_view.png"
 title="testing" alt="Opening View." />
 <figcaption aria-hidden="true">Opening View.</figcaption>
 </figure>
@@ -330,7 +314,7 @@ are plotted
 
 Progressing through the app, you can navigate to the PCA rider. ![View
 of the PCA
-rider](https://github.com/jaspitzer/exploreSE/tree/master/vignettes/screenshots/pca_baseline.png)
+rider](https://raw.githubusercontent.com/jaspitzer/exploreSE/master/vignettes/screenshots/pca_baseline.png)
 
 You can select the coloring scheme of the the points in the drop down
 menu, as well as how many genes are used to calculate the PCA. In the
@@ -340,7 +324,7 @@ other from the dropdown menu.
 
 <figure>
 <img
-src="https://github.com/jaspitzer/exploreSE/tree/master/vignettes/screenshots/pca_dex.png"
+src="https://raw.githubusercontent.com/jaspitzer/exploreSE/master/vignettes/screenshots/pca_dex.png"
 alt="Alternate coloring of the PCA" />
 <figcaption aria-hidden="true">Alternate coloring of the
 PCA</figcaption>
@@ -358,7 +342,7 @@ exported from the table below.
 
 <figure>
 <img
-src="https://github.com/jaspitzer/exploreSE/tree/master/vignettes/screenshots/expression.png"
+src="https://raw.githubusercontent.com/jaspitzer/exploreSE/master/vignettes/screenshots/expression.png"
 alt="Overview of the Gene Expression panel" />
 <figcaption aria-hidden="true">Overview of the Gene Expression
 panel</figcaption>
@@ -371,7 +355,7 @@ models and within this tab, we are starting that process.
 
 <figure>
 <img
-src="https://github.com/jaspitzer/exploreSE/tree/master/vignettes/screenshots/de_baseline.png"
+src="https://raw.githubusercontent.com/jaspitzer/exploreSE/master/vignettes/screenshots/de_baseline.png"
 alt="Differential expression overview for the baseline model." />
 <figcaption aria-hidden="true">Differential expression overview for the
 baseline model.</figcaption>
@@ -388,7 +372,7 @@ view:
 
 <figure>
 <img
-src="https://github.com/jaspitzer/exploreSE/tree/master/vignettes/screenshots/de_controlled.png"
+src="https://raw.githubusercontent.com/jaspitzer/exploreSE/master/vignettes/screenshots/de_controlled.png"
 alt="Differential expression overview for the cell-controlled model." />
 <figcaption aria-hidden="true">Differential expression overview for the
 cell-controlled model.</figcaption>
@@ -401,7 +385,7 @@ the Volcano Plot tab.
 
 <figure>
 <img
-src="https://github.com/jaspitzer/exploreSE/tree/master/vignettes/screenshots/volcano_baseline.png"
+src="https://raw.githubusercontent.com/jaspitzer/exploreSE/master/vignettes/screenshots/volcano_baseline.png"
 alt="Volcano plot of the baseline model." />
 <figcaption aria-hidden="true">Volcano plot of the baseline
 model.</figcaption>
@@ -421,7 +405,7 @@ Enrichment Results tab.
 
 <figure>
 <img
-src="https://github.com/jaspitzer/exploreSE/tree/master/vignettes/screenshots/gos_baseline.png"
+src="https://raw.githubusercontent.com/jaspitzer/exploreSE/master/vignettes/screenshots/gos_baseline.png"
 alt="Enrichment results for the baseline model." />
 <figcaption aria-hidden="true">Enrichment results for the baseline
 model.</figcaption>
@@ -439,7 +423,7 @@ into the differences. For this, two models can be selected and their
 respective fold changes plotted against each other.
 
 ![FC-FC plot of the baseline and cell-controlled
-models.](https://github.com/jaspitzer/exploreSE/tree/master/vignettes/screenshots/fc_fc.png)\]
+models.](https://raw.githubusercontent.com/jaspitzer/exploreSE/master/vignettes/screenshots/fc_fc.png)\]
 
 # FAQ
 
