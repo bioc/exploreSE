@@ -276,3 +276,234 @@ you have the object already loaded.
 app <- exploreSE(object = airway)
 shiny::runApp(app, port = 1234)
 ```
+
+<figure>
+<img src="screenshots/opening_view.png" alt="Opening View." />
+<figcaption aria-hidden="true">Opening View.</figcaption>
+</figure>
+
+After starting the app, you are created with an overview of the metadata
+in the `colData` of the relevant `summarizedExperiment`, as well as a
+search- and scrollable view of the same table. On the left hand side,
+you can load in a different object from the local environment if desired
+under the “Data Input header” - should you start up the app without any
+data, the “Use Demo Data” checkbox will be checked and some demo data
+will be generated for you. Below that, you will find some options for
+the your data exploration throughout the app. Options that are specific
+to the one panel only are integrated into that panel, but globally
+relevant options appear in the sidebar as needed. You will have your
+choice of the relevant gene identifier; by default it picks the first
+column from your `rowData`, but with the drop-down menu that behavior
+can be changed. Secondly, you can pick your differential expression
+analysis; these come from the relevant slots from the underlying
+`DeeDeeExperiment` or m̀etdata()\`.
+
+## Overview
+
+On the top side, you have 6 riders to choose from: 1. Overview,
+currently selected 2. PCA; an overview of the principle component
+visualisation 3. Gene Expression, where the expression of a selected
+gene is visualised 4. DE Results; the currently selected DE comparison
+is summarised and visualised 5. Volcano Plot: a volcano plot of the
+selected DE comparison 6. Enrichment Results: present enrichment results
+are plotted
+
+## PCA view
+
+Progressing through the app, you can navigate to the PCA rider. ![View
+of the PCA rider](screenshots/pca_baseline.png)
+
+You can select the coloring scheme of the the points in the drop down
+menu, as well as how many genes are used to calculate the PCA. In the
+`airway` dataset, the dexamethasone treatment, saved in the `dex`
+variable, is the primary variable of interest, but you can also select
+other from the dropdown menu.
+
+<figure>
+<img src="screenshots/pca_dex.png"
+alt="Alternate coloring of the PCA" />
+<figcaption aria-hidden="true">Alternate coloring of the
+PCA</figcaption>
+</figure>
+
+## Expression plotting
+
+Navigating to the Gene Expression tab, you can check the expression of
+selected genes. By selecting a value in the Color/Group by drop-down
+menu, you can select the value on the x-axis. You can also
+include/exclude certain levels of that variable through the tick boxes
+on the left. The gene being plotted is selected by the “Select Gene”
+dropdown, which is searchable. Any values visible in the plot can be
+exported from the table below.
+
+<figure>
+<img src="screenshots/expression.png"
+alt="Overview of the Gene Expression panel" />
+<figcaption aria-hidden="true">Overview of the Gene Expression
+panel</figcaption>
+</figure>
+
+## DE Results
+
+The heart of this application is the comparison of different possible
+models and within this tab, we are starting that process.
+
+<figure>
+<img src="screenshots/de_baseline.png"
+alt="Differential expression overview for the baseline model." />
+<figcaption aria-hidden="true">Differential expression overview for the
+baseline model.</figcaption>
+</figure>
+
+On the top of the page, a little overview indicates all the comparisons
+found in the respective slots. Below, a barchart indicates the number of
+differentially expressed genes. The specifics of the results can looked
+up in a table below and exported.
+
+This view also exists for each comparison; selecting a different
+comparison from the drop-down menu on the left hand side refreshes the
+view:
+
+<figure>
+<img src="screenshots/de_controlled.png"
+alt="Differential expression overview for the cell-controlled model." />
+<figcaption aria-hidden="true">Differential expression overview for the
+cell-controlled model.</figcaption>
+</figure>
+
+## Volcano plot
+
+A graphical overview over the differential expression can be found in
+the Volcano Plot tab.
+
+<figure>
+<img src="screenshots/volcano_baseline.png"
+alt="Volcano plot of the baseline model." />
+<figcaption aria-hidden="true">Volcano plot of the baseline
+model.</figcaption>
+</figure>
+
+On the top of this tab, a variety of graphical settings can be
+determined: the cutoffs for the different colors, a number of genes to
+label and the colorcode are all freely changeable. Again, this view
+depends on the selected comparison.
+
+## Enrichment results
+
+For interpretation of these results, you often rely on the different
+enrichment methods that to determine which biological themes or pathways
+are altered in a given comparison. These results are visualised in the
+Enrichment Results tab.
+
+<figure>
+<img src="screenshots/gos_baseline.png"
+alt="Enrichment results for the baseline model." />
+<figcaption aria-hidden="true">Enrichment results for the baseline
+model.</figcaption>
+</figure>
+
+In this case, we are looking at the GO term enrichments for the baseline
+model. Like before, some graphical adjustments can be set at the top.
+Below, we have two bar charts, one for each direction of the comparison.
+The genes driving the enrichment are written inside the bars.
+
+## Comparison of Fold Changes
+
+Direct comparison of fold changes across models can generate insights
+into the differences. For this, two models can be selected and their
+respective fold changes plotted against each other.
+
+![FC-FC plot of the baseline and cell-controlled
+models.](screenshots/fc_fc.png)\]
+
+# FAQ
+
+**Q: How do I add results into the summarizedExperiment?** A: The
+easiest way is to use the `DeeDeeExperiment` extension of the
+`summarizedExperiment` class. You can use the dedicated DEA and FEA
+slots. There is a detailed explanation
+[here](https://bioconductor.org/packages//release/bioc/vignettes/DeeDeeExperiment/inst/doc/DeeDeeExperiment_manual.html).
+If you do not want that, you can add it to the `summarizedExperiment`
+metadata, using `de-results`and `fe_results`as names. **Q: can I use the
+explorer to perform analysis?** A: No, this app is only design to
+visualise already performed analyses. All decisions on what to test,
+what enrichments to run should happen before you start the app and make
+use of the package.
+
+# Session Info
+
+``` r
+sessionInfo()
+#> R version 4.6.0 (2026-04-24)
+#> Platform: x86_64-pc-linux-gnu
+#> Running under: Ubuntu 22.04.5 LTS
+#> 
+#> Matrix products: default
+#> BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.10.0 
+#> LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.10.0  LAPACK version 3.10.0
+#> 
+#> locale:
+#>  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+#>  [3] LC_TIME=de_DE.UTF-8        LC_COLLATE=en_US.UTF-8    
+#>  [5] LC_MONETARY=de_DE.UTF-8    LC_MESSAGES=en_US.UTF-8   
+#>  [7] LC_PAPER=de_DE.UTF-8       LC_NAME=C                 
+#>  [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+#> [11] LC_MEASUREMENT=de_DE.UTF-8 LC_IDENTIFICATION=C       
+#> 
+#> time zone: Europe/Berlin
+#> tzcode source: system (glibc)
+#> 
+#> attached base packages:
+#> [1] stats4    stats     graphics  grDevices utils     datasets  methods  
+#> [8] base     
+#> 
+#> other attached packages:
+#>  [1] DeeDeeExperiment_1.2.0      SingleCellExperiment_1.34.0
+#>  [3] DESeq2_1.52.0               airway_1.32.0              
+#>  [5] SummarizedExperiment_1.42.0 Biobase_2.72.0             
+#>  [7] GenomicRanges_1.64.0        Seqinfo_1.2.0              
+#>  [9] IRanges_2.46.0              S4Vectors_0.50.1           
+#> [11] BiocGenerics_0.58.1         generics_0.1.4             
+#> [13] MatrixGenerics_1.24.0       matrixStats_1.5.0          
+#> [15] exploreSE_0.99.5           
+#> 
+#> loaded via a namespace (and not attached):
+#>   [1] RColorBrewer_1.1-3      jsonlite_2.0.0          tidydr_0.0.6           
+#>   [4] magrittr_2.0.5          ggtangle_0.1.2          farver_2.1.2           
+#>   [7] rmarkdown_2.31          fs_2.1.0                vctrs_0.7.3            
+#>  [10] memoise_2.0.1           ggtree_4.2.0            htmltools_0.5.9        
+#>  [13] S4Arrays_1.12.0         SparseArray_1.12.2      gridGraphics_0.5-1     
+#>  [16] htmlwidgets_1.6.4       plyr_1.8.9              httr2_1.2.2            
+#>  [19] cachem_1.1.0            igraph_2.3.2            lifecycle_1.0.5        
+#>  [22] pkgconfig_2.0.3         gson_0.1.0              Matrix_1.7-5           
+#>  [25] R6_2.6.1                fastmap_1.2.0           digest_0.6.39          
+#>  [28] aplot_0.2.9             enrichplot_1.32.0       ggnewscale_0.5.2       
+#>  [31] patchwork_1.3.2         AnnotationDbi_1.74.0    aisdk_1.4.12           
+#>  [34] ps_1.9.3                RSQLite_3.53.1          org.Hs.eg.db_3.23.1    
+#>  [37] httr_1.4.8              polyclip_1.10-7         abind_1.4-8            
+#>  [40] compiler_4.6.0          bit64_4.8.2             fontquiver_0.2.1       
+#>  [43] withr_3.0.2             S7_0.2.2                BiocParallel_1.46.0    
+#>  [46] DBI_1.3.0               ggforce_0.5.0           MASS_7.3-65            
+#>  [49] rappdirs_0.3.4          DelayedArray_0.38.2     tools_4.6.0            
+#>  [52] otel_0.2.0              ape_5.8-1               scatterpie_0.2.6       
+#>  [55] glue_1.8.1              callr_3.8.0             nlme_3.1-169           
+#>  [58] GOSemSim_2.38.0         grid_4.6.0              cluster_2.1.8.2        
+#>  [61] reshape2_1.4.5          gtable_0.3.6            tidyr_1.3.2            
+#>  [64] XVector_0.52.0          ggrepel_0.9.8           pillar_1.11.1          
+#>  [67] stringr_1.6.0           yulab.utils_0.2.4       limma_3.68.4           
+#>  [70] splines_4.6.0           dplyr_1.2.1             tweenr_2.0.3           
+#>  [73] treeio_1.36.1           lattice_0.22-9          bit_4.6.0              
+#>  [76] tidyselect_1.2.1        fontLiberation_0.1.0    GO.db_3.23.1           
+#>  [79] locfit_1.5-9.12         Biostrings_2.80.1       knitr_1.51             
+#>  [82] fontBitstreamVera_0.1.1 edgeR_4.10.1            xfun_0.58              
+#>  [85] statmod_1.5.2           stringi_1.8.7           lazyeval_0.2.3         
+#>  [88] ggfun_0.2.0             yaml_2.3.12             evaluate_1.0.5         
+#>  [91] codetools_0.2-20        qvalue_2.44.0           gdtools_0.5.1          
+#>  [94] tibble_3.3.1            ggplotify_0.1.3         cli_3.6.6              
+#>  [97] systemfonts_1.3.2       processx_3.9.0          Rcpp_1.1.1-1.1         
+#> [100] png_0.1-9               parallel_4.6.0          ggplot2_4.0.3          
+#> [103] blob_1.3.0              clusterProfiler_4.20.0  DOSE_4.6.0             
+#> [106] tidytree_0.4.7          ggiraph_0.9.6           enrichit_0.1.5         
+#> [109] scales_1.4.0            purrr_1.2.2             crayon_1.5.3           
+#> [112] writexl_1.5.4           rlang_1.2.0             KEGGREST_1.52.0
+```
