@@ -201,6 +201,8 @@ Direct comparison of fold changes across models can generate insights into the d
 
 ![FC-FC plot of the baseline and cell-controlled models.](screenshots/fc_fc.png)] 
 
+Below the plot, a table highlights genes with a fold change difference larger than the selected threshold (default: 1). This table can be downloaded.
+
 # FAQ
 
 **Q: How do I add results into the summarizedExperiment?**

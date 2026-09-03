@@ -85,6 +85,14 @@ ui <- function(request) {
             "Color for DE Comparison 2",
             "#f03405"
           ),
+          shiny::numericInput(
+            "fcfc_dif",
+            "Difference between fold changes:",
+            value = 1,
+            min = 0,
+            max = 5,
+            step = 0.1
+          )
         )
       ),
 
@@ -296,7 +304,13 @@ ui <- function(request) {
               choices = NULL
             ),
             shiny::hr(),
-            plotly::plotlyOutput("fcfc_plot", height = "700px")
+            plotly::plotlyOutput("fcfc_plot", height = "700px"),
+
+            DT::DTOutput("fcfc_dif"),
+            shiny::downloadButton(
+              "download_fc_fc",
+              "Download difference table"
+            )
           )
         )
       )
@@ -872,6 +886,57 @@ server <- function(input, output, session) {
       COLS = colors_acute
     )
   })
+  ## FC FC lists ----------------------------
+  output$fcfc_dif <- DT::renderDT({
+    shiny::req(
+      rv$se,
+      input$de_comparison,
+      input$comparison_comparison,
+      input$row_data_var
+    )
+    DT::datatable(
+      as.data.frame(.get_split_des(
+        OBJ = rv$se,
+        NAME = input$de_comparison,
+        PARTNER_NAME = input$comparison_comparison,
+        CUTOFF = input$fcfc_dif,
+        GENE_VAR = input$row_data_var,
+        GENE_VARS = rv$gene_idents
+      )),
+      options = list(pageLength = 10, scrollX = TRUE),
+      rownames = TRUE
+    )
+  })
+
+  output$download_fc_fc <- shiny::downloadHandler(
+    filename = function() {
+      paste0(
+        input$de_comparison,
+        "_",
+        input$comparison_comparison,
+        "_",
+        Sys.Date(),
+        ".csv"
+      )
+    },
+    content = function(file) {
+      shiny::req(
+        rv$se,
+        input$de_comparison,
+        input$comparison_comparison,
+        input$row_data_var
+      )
+      dif_table <- as.data.frame(.get_split_des(
+        OBJ = rv$se,
+        NAME = input$de_comparison,
+        PARTNER_NAME = input$comparison_comparison,
+        CUTOFF = input$fcfc_dif,
+        GENE_VAR = input$row_data_var,
+        GENE_VARS = rv$gene_idents
+      ))
+      readr::write_excel_csv2(dif_table, file)
+    }
+  )
 }
 # nocov end
 

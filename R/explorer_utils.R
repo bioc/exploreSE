@@ -629,3 +629,118 @@
     p <- plotly::ggplotly(p, tooltip = c("text"))
     return(p)
 }
+
+
+#' creates fc-fc difference table
+#' @noRd
+.get_split_des <- function(
+    OBJ,
+    NAME,
+    PARTNER_NAME,
+    CUTOFF,
+    GENE_VAR = "SYMBOL",
+    GENE_VARS = c("SYMBOL"),
+    padj_CO = 0.05,
+    fc_CO = 1
+) {
+    if (NAME == PARTNER_NAME) {
+        return(data.frame())
+    }
+
+    gene_var <- rlang::sym(GENE_VAR)
+    df_a <- .de_result(OBJ, NAME = NAME) |>
+        tibble::rownames_to_column("gene_ident")
+
+    df_b <- .de_result(OBJ, NAME = PARTNER_NAME) |>
+        tibble::rownames_to_column("gene_ident")
+
+    df_list <- list(df_a, df_b) |>
+        purrr::set_names(c(NAME, PARTNER_NAME)) |>
+        purrr::map(\(x) {
+            dplyr::filter(
+                x,
+                !is.na(padj),
+                !is.na(log2FoldChange),
+                !is.infinite(log2FoldChange)
+            )
+        }) |>
+        purrr::imap(\(DF, .NAME) {
+            dplyr::mutate(
+                DF,
+                sig = ifelse(
+                    padj < padj_CO & abs(log2FoldChange) > fc_CO,
+                    .NAME,
+                    "ns"
+                )
+            )
+        })
+
+    df_comb <- dplyr::left_join(
+        df_list[[NAME]],
+        df_list[[PARTNER_NAME]],
+        by = dplyr::join_by(gene_ident),
+        suffix = paste0("_", c("A", "B"))
+    ) |>
+        dplyr::mutate(
+            sig = dplyr::case_when(
+                sig_A == "ns" & sig_B == "ns" ~ "ns",
+                sig_A == NAME & sig_B == PARTNER_NAME ~ "both",
+                sig_A == "ns" ~ PARTNER_NAME,
+                sig_B == "ns" ~ NAME
+            ) |>
+                forcats::fct_relevel("ns", "both", PARTNER_NAME)
+        ) |>
+        dplyr::select(-sig_A, -sig_B) |>
+        dplyr::filter(!is.na(sig))
+
+    merging_data <- SummarizedExperiment::rowData(OBJ) |>
+        as.data.frame() |>
+        dplyr::select(tidyselect::any_of(GENE_VARS)) |>
+        tibble::rownames_to_column("gene_ident")
+
+    df_comb <- merging_data |>
+        dplyr::inner_join(df_comb, by = dplyr::join_by(gene_ident)) |>
+        dplyr::mutate(gene_id = !!gene_var)
+
+    genes_with_diff <- df_comb |>
+        dplyr::filter(abs(log2FoldChange_A - log2FoldChange_B) > CUTOFF) |>
+        dplyr::mutate(
+            Effect_Classification = dplyr::case_when(
+                log2FoldChange_A > log2FoldChange_B ~ paste(
+                    "stronger effect in",
+                    NAME
+                ),
+                log2FoldChange_B > log2FoldChange_A ~ paste(
+                    "stronger effect in",
+                    PARTNER_NAME
+                ),
+                T ~ "No Diff"
+            ) |>
+                forcats::fct_relevel("No Diff", after = Inf),
+            dplyr::across(tidyselect::contains("log2Fol"), \(x) round(x, 2)),
+            dplyr::across(tidyselect::contains("padj"), \(x) round(x, 4))
+        ) |>
+        dplyr::rename(Significant_In = sig) |>
+        dplyr::rename_with(\(x) {
+            stringr::str_replace(
+                x,
+                "log2FoldChange_A",
+                paste("log2FoldChange", NAME)
+            )
+        }) |>
+        dplyr::rename_with(\(x) {
+            stringr::str_replace(
+                x,
+                "log2FoldChange_B",
+                paste("log2FoldChange", PARTNER_NAME)
+            )
+        }) |>
+        dplyr::select(
+            gene_id,
+            tidyselect::contains("log2Fol"),
+            Significant_In,
+            Effect_Classification
+        )
+
+    return(genes_with_diff)
+}

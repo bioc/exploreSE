@@ -14,3 +14,7 @@
 
 # exploreSE 0.99.5
 * fixed R dependency in the description file
+
+
+# exploreSE 0.99.6
+* adjusted some things in the README and added a table below the FCFC plot 

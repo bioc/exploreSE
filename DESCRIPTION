@@ -1,6 +1,6 @@
 Package: exploreSE
 Title: Explorer for Your Bulk RNA Seq Analyses
-Version: 0.99.5
+Version: 0.99.6
 Authors@R: 
     person("Jasper", "Spitzer", , "jasspitzer135@gmail.com", 
         role = c("aut", "cre"), comment = c(ORCID="0000-0001-9696-2092"))

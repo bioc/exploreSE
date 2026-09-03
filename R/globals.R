@@ -44,5 +44,7 @@ utils::globalVariables(c(
   "sig_A",
   "sig_B",
   "log2FoldChange_A",
-  "log2FoldChange_B"
+  "log2FoldChange_B",
+  "Significant_In",
+  "Effect_Classification"
 ))
