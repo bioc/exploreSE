@@ -18,3 +18,4 @@
 
 # exploreSE 0.99.6
 * adjusted some things in the README and added a table below the FCFC plot 
+* fixed a bug where the results stored in the metadata as no data frames where not converted

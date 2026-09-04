@@ -67,7 +67,7 @@
                 stringr::str_remove(x, paste0(NAME, "_"))
             })
     } else {
-        res <- S4Vectors::metadata(SE)$de_results[[NAME]]
+        res <- as.data.frame(S4Vectors::metadata(SE)$de_results[[NAME]])
     }
 }
 
