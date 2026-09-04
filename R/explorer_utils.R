@@ -703,7 +703,10 @@
         dplyr::mutate(gene_id = !!gene_var)
 
     genes_with_diff <- df_comb |>
-        dplyr::filter(abs(log2FoldChange_A - log2FoldChange_B) > CUTOFF) |>
+        dplyr::filter(
+            sig != "ns",
+            abs(log2FoldChange_A - log2FoldChange_B) > CUTOFF
+        ) |>
         dplyr::mutate(
             Effect_Classification = dplyr::case_when(
                 log2FoldChange_A > log2FoldChange_B ~ paste(
