@@ -18,7 +18,11 @@ vignette: >
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  error    = FALSE,
+  warning  = FALSE,
+  eval     = TRUE,
+  message  = FALSE
 )
 ```
 
@@ -50,6 +54,10 @@ example(exploreSE, ask = FALSE)
 
 # Setting up the data
 For the purposes of this example, we'll be using the `airway` data. It is part of the [airway](https://www.bioconductor.org/packages/release/data/experiment/html/airway.html) package, containing RNA-Seq data from different airway smooth muscle cell lines either untreated or treated with dexamethasone.
+
+```{r laoding-airway-messages, echo=FALSE, include=FALSE}
+library(airway)
+```
 
 ```{r airway-dataset}
 library(airway)
@@ -111,7 +119,7 @@ airway
 In addition to differential expression anaylsis, we can also explore some biological data mining, in this case GO ORA. Here we use the `get.gos()` function from the `exploreSE` package, but it just populates the FEA slot of the DeeDeeExperiment. 
 
 
-```{r example_gos}
+```{r example_gos, warnings=FALSE}
 airway <- get.gos(obj = airway, NAME = "baseline", gene_type = "ENSEMBL")
 airway <- get.gos(obj = airway, NAME = "cell_controlled", gene_type = "ENSEMBL")
 ```
