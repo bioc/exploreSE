@@ -161,12 +161,6 @@ variable.
 library(DESeq2)
 airway <- DESeqDataSet(airway, design = ~dex)
 airway <- DESeq(airway)
-#> estimating size factors
-#> estimating dispersions
-#> gene-wise dispersion estimates
-#> mean-dispersion relationship
-#> final dispersion estimates
-#> fitting model and testing
 baseline <- results(airway)
 ```
 
@@ -176,13 +170,6 @@ of the cell line, stored in the `cell` variable:
 ``` r
 design(airway) <- ~ cell + dex
 airway <- DESeq(airway)
-#> using pre-existing size factors
-#> estimating dispersions
-#> found already estimated dispersions, replacing these
-#> gene-wise dispersion estimates
-#> mean-dispersion relationship
-#> final dispersion estimates
-#> fitting model and testing
 cell_controlled <- results(airway)
 ```
 
@@ -192,7 +179,6 @@ package, we will store these results in the their respective slots.
 
 ``` r
 library(DeeDeeExperiment)
-#> Loading required package: SingleCellExperiment
 airway <- DeeDeeExperiment(airway)
 airway <- addDEA(airway, baseline)
 airway <- addDEA(airway, cell_controlled)
@@ -226,37 +212,7 @@ the FEA slot of the DeeDeeExperiment.
 
 ``` r
 airway <- get.gos(obj = airway, NAME = "baseline", gene_type = "ENSEMBL")
-#> 
-#> 
-#> 'select()' returned 1:many mapping between keys and columns
-#> 'select()' returned 1:many mapping between keys and columns
-#> 'select()' returned 1:many mapping between keys and columns
-#> 'select()' returned 1:many mapping between keys and columns
-#> 'select()' returned 1:many mapping between keys and columns
-#> 'select()' returned 1:many mapping between keys and columns
-#> Found 5112 gene sets in `enrichResult` object, of which 57 are significant.
-#> Converting for usage within the DeeDeeExperiment framework...
-#> ✔ Renamed FEA entries: "up_go" to "baseline_up_go"
-#> 'select()' returned 1:many mapping between keys and columns
-#> 'select()' returned 1:many mapping between keys and columns
-#> Found 5112 gene sets in `enrichResult` object, of which 77 are significant.
-#> Converting for usage within the DeeDeeExperiment framework...
-#> ✔ Renamed FEA entries: "dn_go" to "baseline_down_go"
 airway <- get.gos(obj = airway, NAME = "cell_controlled", gene_type = "ENSEMBL")
-#> 'select()' returned 1:many mapping between keys and columns
-#> 'select()' returned 1:many mapping between keys and columns
-#> 'select()' returned 1:many mapping between keys and columns
-#> 'select()' returned 1:many mapping between keys and columns
-#> 'select()' returned 1:many mapping between keys and columns
-#> 'select()' returned 1:many mapping between keys and columns
-#> Found 5079 gene sets in `enrichResult` object, of which 118 are significant.
-#> Converting for usage within the DeeDeeExperiment framework...
-#> ✔ Renamed FEA entries: "up_go" to "cell_controlled_up_go"
-#> 'select()' returned 1:many mapping between keys and columns
-#> 'select()' returned 1:many mapping between keys and columns
-#> Found 5079 gene sets in `enrichResult` object, of which 32 are significant.
-#> Converting for usage within the DeeDeeExperiment framework...
-#> ✔ Renamed FEA entries: "dn_go" to "cell_controlled_down_go"
 ```
 
 ``` r
@@ -438,25 +394,28 @@ Direct comparison of fold changes across models can generate insights
 into the differences. For this, two models can be selected and their
 respective fold changes plotted against each other.
 
-![FC-FC plot of the baseline and cell-controlled
-models.](https://raw.githubusercontent.com/jaspitzer/exploreSE/master/vignettes/screenshots/fc_fc.png)
+<figure>
+<img
+src="https://raw.githubusercontent.com/jaspitzer/exploreSE/master/vignettes/screenshots/fc_fc.png"
+alt="FC-FC plot of the baseline and cell-controlled models." />
+<figcaption aria-hidden="true">FC-FC plot of the baseline and
+cell-controlled models.</figcaption>
+</figure>
 
 # FAQ
 
-**Q: How do I add results into the summarizedExperiment?** 
-
-A: The easiest way is to use the `DeeDeeExperiment` extension of the
+**Q: How do I add results into the summarizedExperiment?** A: The
+easiest way is to use the `DeeDeeExperiment` extension of the
 `summarizedExperiment` class. You can use the dedicated DEA and FEA
 slots. There is a detailed explanation
 [here](https://bioconductor.org/packages//release/bioc/vignettes/DeeDeeExperiment/inst/doc/DeeDeeExperiment_manual.html).
 If you do not want that, you can add it to the `summarizedExperiment`
-metadata, using `de-results`and `fe_results`as names. 
+metadata, using `de-results`and `fe_results`as names.
 
-**Q: can I use the explorer to perform analysis?** 
-
-A: No, this app is only design to visualise already performed analyses. 
-All decisions on what to test,  what enrichments to run should happen before 
-you start the app and make use of the package.
+**Q: can I use the explorer to perform analysis?** A: No, this app is
+only design to visualise already performed analyses. All decisions on
+what to test, what enrichments to run should happen before you start the
+app and make use of the package.
 
 # Session Info
 
@@ -493,7 +452,7 @@ sessionInfo()
 #>  [9] IRanges_2.46.0              S4Vectors_0.50.1           
 #> [11] BiocGenerics_0.58.1         generics_0.1.4             
 #> [13] MatrixGenerics_1.24.0       matrixStats_1.5.0          
-#> [15] exploreSE_0.99.5           
+#> [15] exploreSE_0.99.6           
 #> 
 #> loaded via a namespace (and not attached):
 #>   [1] RColorBrewer_1.1-3      jsonlite_2.0.0          tidydr_0.0.6           
