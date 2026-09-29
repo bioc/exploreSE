@@ -173,6 +173,13 @@ ui <- function(request) {
             shiny::downloadButton(
               "download_expr",
               "Download Expression Table"
+            ),
+            shiny::hr(),
+            DT::DTOutput("de_status_table"),
+
+            shiny::downloadButton(
+              "download_de_status_table",
+              "Download DE Overview"
             )
           ),
           # tab de res ----------
@@ -692,6 +699,42 @@ server <- function(input, output, session) {
     ) %>%
       DT::formatRound("Count", digits = 0)
   })
+
+  output$de_status_table <- DT::renderDT({
+    DT::datatable(.get_de_status_table(
+      rv$se,
+      input$gene_id,
+      input$row_data_var,
+      padj_CO = input$padj_cutoff_volcano,
+      fc_CO = input$lfc_cutoff_volcano
+    ))
+  })
+
+  output$download_de_status_table <- shiny::downloadHandler(
+    filename = function() {
+      paste0(
+        input$gene_id,
+        "_de_overview",
+        "_",
+        Sys.Date(),
+        ".csv"
+      )
+    },
+    content = function(file) {
+      shiny::req(
+        rv$se,
+        input$gene_id
+      )
+      de_table <- as.data.frame(.get_de_status_table(
+        rv$se,
+        input$gene_id,
+        input$row_data_var,
+        padj_CO = input$padj_cutoff_volcano,
+        fc_CO = input$lfc_cutoff_volcano
+      ))
+      readr::write_excel_csv2(de_table, file)
+    }
+  )
 
   output$de_table <- DT::renderDT({
     de_data <- current_de_results()

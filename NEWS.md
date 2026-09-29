@@ -19,3 +19,10 @@
 # exploreSE 0.99.6
 * adjusted some things in the README and added a table below the FCFC plot 
 * fixed a bug where the results stored in the metadata as no data frames where not converted
+
+# exploreSE 0.99.7
+* removed messages and warnings from the readme and the vignette to increase legibility
+* added a a=b  line in the FC FC plot for visibility
+* fixed an issue in the test suite caused by filtering not significant hits from the fc-fc plots
+* fixed a bug where the gene selection did not update based on gene type
+* added an overview table of the different DE comparisons where a given gene is considered DE in the bottom of the gene expression panel 

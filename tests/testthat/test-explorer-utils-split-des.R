@@ -152,7 +152,7 @@ test_that(".get_split_des honors a custom padj_CO threshold for significance cal
     CUTOFF = 1,
     padj_CO = 0.01
   )
-  expect_equal(as.character(not_sig$Significant_In), "ns")
+  expect_equal(nrow(not_sig), 0)
 })
 
 test_that(".get_split_des honors a custom fc_CO threshold for significance calls", {
@@ -171,5 +171,5 @@ test_that(".get_split_des honors a custom fc_CO threshold for significance calls
     CUTOFF = 1,
     fc_CO = 2
   )
-  expect_equal(as.character(not_sig$Significant_In), "ns")
+  expect_equal(nrow(not_sig), 0)
 })

@@ -31,7 +31,8 @@
       gene_choices <- SummarizedExperiment::rowData(rv$se)[,
         input$row_data_var,
         drop = TRUE
-      ]
+      ] |>
+        unname()
 
       shinyWidgets::updatePickerInput(
         session,
@@ -122,29 +123,17 @@
 
     default_row_var <- if ("gene_name" %in% row_vars) {
       "gene_name"
-    } else if ("SYMBOL" %in% stringr::str_to_upper(row_vars)) {
-      row_vars[which(stringr::str_to_upper(row_vars) == "SYMBOL")[1]]
+      # } else if ("SYMBOL" %in% stringr::str_to_upper(row_vars)) {
+      #   row_vars[which(stringr::str_to_upper(row_vars) == "SYMBOL")[1]]
     } else {
       row_vars[1]
     }
+
     shiny::updateSelectInput(
       session,
       "row_data_var",
       choices = row_vars,
       selected = default_row_var
-    )
-
-    # Update gene choices with searchable picker
-    gene_choices <- SummarizedExperiment::rowData(rv$se)[,
-      default_row_var,
-      drop = TRUE
-    ]
-
-    shinyWidgets::updatePickerInput(
-      session,
-      "gene_id",
-      choices = gene_choices,
-      selected = gene_choices[1]
     )
 
     # Update DE comparison choices if precomputed results exist

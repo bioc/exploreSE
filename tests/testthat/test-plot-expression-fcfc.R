@@ -105,7 +105,11 @@ test_that(".plot_fcfc buckets genes into ns/both/NAME/PARTNER_NAME significance 
     GENE_VAR = "symbol",
     GENE_VARS = c("symbol")
   )
-  trace_names <- vapply(p$x$data, function(d) d$name, character(1))
+  trace_names <- vapply(
+    Filter(function(d) !isFALSE(d$showlegend), p$x$data),
+    function(d) d$name,
+    character(1)
+  )
 
   expect_setequal(trace_names, c("ns", "both", "baseline", "cell_controlled"))
 })
