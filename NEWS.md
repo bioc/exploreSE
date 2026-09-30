@@ -26,3 +26,6 @@
 * fixed an issue in the test suite caused by filtering not significant hits from the fc-fc plots
 * fixed a bug where the gene selection did not update based on gene type
 * added an overview table of the different DE comparisons where a given gene is considered DE in the bottom of the gene expression panel 
+
+# exploreSE 0.99.8
+* put the data loading interface into a conditional, so that it only appears when no data is loaded

@@ -6,14 +6,18 @@ ui <- function(request) {
     shiny::sidebarLayout(
       shiny::sidebarPanel(
         width = 3,
-        shiny::h4("Data Input"),
-        shiny::fileInput(
-          "se_file",
-          "Upload SummarizedExperiment (.rds)",
-          accept = ".rds"
+        shiny::conditionalPanel(
+          condition = "!output.data_loaded",
+          shiny::h4("Data Input"),
+          shiny::fileInput(
+            "se_file",
+            "Upload SummarizedExperiment (.rds)",
+            accept = ".rds"
+          ),
+          shiny::checkboxInput("use_demo", "Use Demo Data", value = TRUE),
+          shiny::hr(),
         ),
-        shiny::checkboxInput("use_demo", "Use Demo Data", value = TRUE),
-        shiny::hr(),
+
         shiny::h4("Analysis Options"),
 
         shiny::conditionalPanel(
