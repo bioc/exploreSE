@@ -33,6 +33,12 @@ if (!requireNamespace("BiocManager", quietly = TRUE)) {
 BiocManager::install("exploreSE")
 ```
 
+Alternatively, the devlopment version can be installed via `pak`:
+
+```{r github_install, eval = FALSE}
+pak::pak("jaspitzer/exploreSE")
+```
+
 Once installed, the packages can be accessed through the following bit of code:
 
 ```{r library, message=FALSE}

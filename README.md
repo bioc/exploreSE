@@ -27,6 +27,12 @@ if (!requireNamespace("BiocManager", quietly = TRUE)) {
 BiocManager::install("exploreSE")
 ```
 
+Alternatively, the devlopment version can be installed via `pak`:
+
+``` r
+pak::pak("jaspitzer/exploreSE")
+```
+
 Once installed, the packages can be accessed through the following bit
 of code:
 
@@ -452,7 +458,7 @@ sessionInfo()
 #>  [9] IRanges_2.46.0              S4Vectors_0.50.1           
 #> [11] BiocGenerics_0.58.1         generics_0.1.4             
 #> [13] MatrixGenerics_1.24.0       matrixStats_1.5.0          
-#> [15] exploreSE_0.99.6           
+#> [15] exploreSE_0.99.9           
 #> 
 #> loaded via a namespace (and not attached):
 #>   [1] RColorBrewer_1.1-3      jsonlite_2.0.0          tidydr_0.0.6           
