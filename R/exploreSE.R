@@ -343,7 +343,6 @@ server <- function(input, output, session) {
     # Reactive values --------
     rv <- shiny::reactiveValues(
         se = NULL,
-        vst_data = NULL,
         pca_result = NULL,
         de_results = NULL,
         gene_idents = NULL,
@@ -383,17 +382,10 @@ server <- function(input, output, session) {
     # VST transformation -------
     vst_data <- shiny::reactive({
         shiny::req(rv$se)
-
-        if (is.null(rv$vst_data)) {
-            shiny::withProgress(message = "Transforming data...", {
-                dds <- DESeq2::DESeqDataSet(rv$se, design = ~1)
-                rv$vst_data <- SummarizedExperiment::assay(DESeq2::vst(
-                    dds,
-                    blind = TRUE
-                ))
-            })
-        }
-        rv$vst_data
+        shiny::withProgress(message = "Transforming data...", {
+            dds <- DESeq2::DESeqDataSet(rv$se, design = ~1)
+            SummarizedExperiment::assay(DESeq2::vst(dds, blind = TRUE))
+        })
     })
 
     # PCA calculation

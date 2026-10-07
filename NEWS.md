@@ -37,4 +37,7 @@
 # exploreSE 0.99.10
 * fixed a bug with the conditional data loading 
 
+# exploreSE 0.99.11
+* fixed a bug with the PCA when demo data was loaded first. 
+
 
