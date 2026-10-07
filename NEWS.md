@@ -29,3 +29,12 @@
 
 # exploreSE 0.99.8
 * put the data loading interface into a conditional, so that it only appears when no data is loaded
+
+# exploreSE 0.99.9
+* various bug fixes
+* missed a version bump in both description and news
+
+# exploreSE 0.99.10
+* fixed a bug with the conditional data loading 
+
+
