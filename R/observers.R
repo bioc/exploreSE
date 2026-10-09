@@ -99,7 +99,7 @@
       as.data.frame() |>
       dplyr::select(
         tidyselect::where(is.character),
-        tidyselect::contains("id"),
+        # tidyselect::contains("id"),
         tidyselect::contains("entrez")
       ) |>
       dplyr::select(tidyselect::where(\(x) {

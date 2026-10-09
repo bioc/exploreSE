@@ -40,4 +40,8 @@
 # exploreSE 0.99.11
 * fixed a bug with the PCA when demo data was loaded first. 
 
+# exploreSE 0.99.12
+* adjusted the rendering of the DE table for better legibility
+* excluded list columns as possible gene identifier columns
+
 

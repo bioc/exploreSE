@@ -195,6 +195,14 @@ ui <- function(request) {
                         "DE Results",
                         shiny::h3("Differential Expression Results"),
                         shiny::uiOutput("de_status_message"),
+                        shiny::column(
+                            3,
+                            shiny::checkboxInput(
+                                "show_de_only_in_table",
+                                label = "Show only DE genes in table",
+                                value = F
+                            )
+                        ),
                         shiny::fluidRow(),
                         shiny::conditionalPanel(
                             condition = "!output.has_precomputed_de",
@@ -676,7 +684,7 @@ server <- function(input, output, session) {
         )
         plotly::ggplotly(p)
     })
-
+    ## expression table ................
     output$expr_table <- DT::renderDT({
         shiny::req(
             rv$se,
@@ -709,6 +717,35 @@ server <- function(input, output, session) {
             DT::formatRound("Count", digits = 0)
     })
 
+    output$download_expr <- shiny::downloadHandler(
+        filename = function() {
+            comparison_name <- stringr::str_replace(
+                input$gene_id,
+                "[^a-zA-Z0-9_-]",
+                "_"
+            )
+
+            paste0(comparison_name, "_expression_data_", Sys.Date(), ".csv")
+        },
+        content = function(file) {
+            shiny::req(rv$se, input$gene_id, input$groups_to_show)
+
+            gene <- input$gene_id
+            expr_data <- data.frame(
+                Sample = colnames(rv$se),
+                SummarizedExperiment::colData(rv$se),
+                Gene = input$gene_id,
+                Count = SummarizedExperiment::assay(rv$se, "counts")[gene, ],
+                g_r_o_u_p = SummarizedExperiment::colData(rv$se)[[
+                    input$color_var
+                ]]
+            ) %>%
+                dplyr::filter(g_r_o_u_p %in% input$groups_to_show) %>%
+                dplyr::select(-g_r_o_u_p)
+            readr::write_excel_csv2(expr_data, file)
+        }
+    )
+    ## de status table ------------
     output$de_status_table <- DT::renderDT({
         DT::datatable(.get_de_status_table(
             rv$se,
@@ -744,7 +781,7 @@ server <- function(input, output, session) {
             readr::write_excel_csv2(de_table, file)
         }
     )
-
+    ## de table ----------------
     output$de_table <- DT::renderDT({
         de_data <- current_de_results()
         de_data <- dplyr::select(
@@ -767,6 +804,14 @@ server <- function(input, output, session) {
                     round(x, 4)
                 })
             )
+        if (input$show_de_only_in_table) {
+            de_data <- dplyr::filter(
+                de_data,
+                padj < input$padj_cutoff_volcano,
+                abs(log2FoldChange) >= input$lfc_cutoff_volcano
+            )
+        }
+
         shiny::req(de_data)
 
         DT::datatable(
@@ -776,7 +821,7 @@ server <- function(input, output, session) {
             filter = "top"
         )
     })
-
+    ## de plot -----------
     output$de_plot <- shiny::renderPlot({
         colors_acute <- c(
             "Up" = input$up_col,
@@ -794,35 +839,6 @@ server <- function(input, output, session) {
             colors_acute
         )
     })
-
-    output$download_expr <- shiny::downloadHandler(
-        filename = function() {
-            comparison_name <- stringr::str_replace(
-                input$gene_id,
-                "[^a-zA-Z0-9_-]",
-                "_"
-            )
-
-            paste0(comparison_name, "_expression_data_", Sys.Date(), ".csv")
-        },
-        content = function(file) {
-            shiny::req(rv$se, input$gene_id, input$groups_to_show)
-
-            gene <- input$gene_id
-            expr_data <- data.frame(
-                Sample = colnames(rv$se),
-                SummarizedExperiment::colData(rv$se),
-                Gene = input$gene_id,
-                Count = SummarizedExperiment::assay(rv$se, "counts")[gene, ],
-                g_r_o_u_p = SummarizedExperiment::colData(rv$se)[[
-                    input$color_var
-                ]]
-            ) %>%
-                dplyr::filter(g_r_o_u_p %in% input$groups_to_show) %>%
-                dplyr::select(-g_r_o_u_p)
-            readr::write_excel_csv2(expr_data, file)
-        }
-    )
 
     output$download_de <- shiny::downloadHandler(
         filename = function() {
