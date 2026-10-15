@@ -44,4 +44,9 @@
 * adjusted the rendering of the DE table for better legibility
 * excluded list columns as possible gene identifier columns
 
+# exploreSE 0.99.13
+* adjusted alpha for the FC FC lpot to be inline with the rest of the visualisations
+* added a toggle for log scale on the expression plots
+* added to toggle to hide the text for gene driving enrichments in the enrichment plots
+
 

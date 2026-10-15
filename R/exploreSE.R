@@ -150,6 +150,11 @@ ui <- function(request) {
                                 shiny::checkboxGroupInput(
                                     "groups_to_show",
                                     "Include levels:"
+                                ),
+                                shiny::checkboxInput(
+                                    "log_scale_expression",
+                                    "Plot expression on log scale",
+                                    value = FALSE
                                 )
                             ),
                             shiny::column(
@@ -301,6 +306,11 @@ ui <- function(request) {
                                     min = 0,
                                     max = 1,
                                     step = 0.01
+                                ),
+                                shiny::checkboxInput(
+                                    "enrichment_show_text",
+                                    "Show genes driving enrichment",
+                                    value = FALSE
                                 )
                             ),
                             shiny::column(
@@ -680,7 +690,8 @@ server <- function(input, output, session) {
             input$color_var,
             input$groups_to_show,
             input$plot_type,
-            input$row_data_var
+            input$row_data_var,
+            input$log_scale_expression
         )
         plotly::ggplotly(p)
     })
@@ -923,7 +934,8 @@ server <- function(input, output, session) {
                     NAME = name,
                     padj_CO = input$padj_cutoff_enrichment,
                     N_terms = input$n_terms_enrichment,
-                    COLS = colors_acute
+                    COLS = colors_acute,
+                    SHOW_GENES = input$enrichment_show_text
                 )
             })
         })
