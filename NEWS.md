@@ -49,4 +49,9 @@
 * added a toggle for log scale on the expression plots
 * added to toggle to hide the text for gene driving enrichments in the enrichment plots
 
+# exploreSE 0.99.14
+* added a context tab to overlay specified context over the respective comparison
+* bug fixes with regards to demo data and gene identifiers
+* minor refactor for parsing of input lists
+
 

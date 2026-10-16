@@ -34,7 +34,7 @@ ui <- function(request) {
                 ),
 
                 shiny::conditionalPanel(
-                    condition = "input.main_tabs == 'Gene Expression' | input.main_tabs == 'Volcano Plot' | input.main_tabs == 'FC FC'",
+                    condition = "input.main_tabs == 'Gene Expression' | input.main_tabs == 'Volcano Plot' | input.main_tabs == 'FC FC' | input.main_tabs == 'Context'",
 
                     shiny::selectInput(
                         "row_data_var",
@@ -44,7 +44,7 @@ ui <- function(request) {
                 ),
 
                 shiny::conditionalPanel(
-                    condition = "input.main_tabs == 'DE Results' | input.main_tabs == 'Volcano Plot' | input.main_tabs == 'Enrichment Results' | input.main_tabs == 'FC FC'",
+                    condition = "input.main_tabs == 'DE Results' | input.main_tabs == 'Volcano Plot' | input.main_tabs == 'Enrichment Results' | input.main_tabs == 'FC FC' | input.main_tabs == 'Context'",
                     shiny::conditionalPanel(
                         condition = "output.data_loaded",
                         shiny::conditionalPanel(
@@ -59,7 +59,7 @@ ui <- function(request) {
                 ),
 
                 shiny::conditionalPanel(
-                    condition = "input.main_tabs == 'DE Results' | input.main_tabs == 'Volcano Plot' | input.main_tabs == 'Enrichment Results'",
+                    condition = "input.main_tabs == 'DE Results' | input.main_tabs == 'Volcano Plot' | input.main_tabs == 'Enrichment Results' | input.main_tabs == 'Context'",
                     colourpicker::colourInput(
                         "up_col",
                         "Color for Upregulated",
@@ -276,7 +276,7 @@ ui <- function(request) {
                                 12,
                                 shiny::textAreaInput(
                                     "highlight_genes",
-                                    "Highlight specific genes (one per line or comma-separated):",
+                                    "Highlight specific genes (one per line, or separated by spaces or commas):",
                                     value = "",
                                     placeholder = "GENE1, GENE2, GENE3\nor\nGENE1\nGENE2\nGENE3",
                                     rows = 3,
@@ -347,6 +347,37 @@ ui <- function(request) {
                             "download_fc_fc",
                             "Download difference table"
                         )
+                    ),
+                    shiny::tabPanel(
+                        "Context",
+                        shiny::h3("Overlay context lists over your Comparison"),
+                        shiny::fluidRow(
+                            shiny::selectInput(
+                                "context_item",
+                                "What Context do you want",
+                                choices = NULL,
+                                selected = NULL
+                            ),
+                            shiny::actionButton(
+                                "add_context",
+                                "Add context",
+                                icon = shiny::icon("plus")
+                            )
+                        ),
+                        shiny::hr(),
+                        plotly::plotlyOutput(
+                            "context_volcano",
+                            height = "600px"
+                        ),
+                        shiny::hr(),
+                        shiny::h4(shiny::textOutput(
+                            "context_heading",
+                            inline = TRUE
+                        )),
+                        DT::DTOutput("context_enrichment"),
+                        shiny::helpText(
+                            "NOTE: These p-values are not adjusted for multiple testing. Proceed with caution when testing multiple contexts."
+                        )
                     )
                 )
             )
@@ -364,6 +395,8 @@ server <- function(input, output, session) {
         pca_result = NULL,
         de_results = NULL,
         gene_idents = NULL,
+        context_lists = list(),
+        current_context = NULL
     )
 
     has_precomputed_de <- shiny::reactive({
@@ -382,6 +415,7 @@ server <- function(input, output, session) {
     .observe_inital_obj(input, session, rv)
     .observe_load_file(input, session, rv)
     .create_rowvar_observer(input, session, rv)
+    .observe_context(input, session, rv)
     # precomputed results ---------
 
     # Get precomputed DE comparisons
@@ -457,8 +491,18 @@ server <- function(input, output, session) {
 
                     # Get results
                     res <- DESeq2::results(dds)
-                    rv$de_results <- as.data.frame(res) %>%
-                        tibble::rownames_to_column("gene_id") %>%
+                    res_df <- as.data.frame(res) %>%
+                        tibble::rownames_to_column("gene_ident")
+
+                    # add the gene identifiers, as for precomputed results
+                    rv$de_results <- SummarizedExperiment::rowData(rv$se) |>
+                        as.data.frame() |>
+                        dplyr::select(tidyselect::any_of(rv$gene_idents)) |>
+                        tibble::rownames_to_column("gene_ident") |>
+                        dplyr::inner_join(
+                            res_df,
+                            by = dplyr::join_by(gene_ident)
+                        ) |>
                         dplyr::arrange(padj)
 
                     shiny::showNotification(
@@ -838,7 +882,7 @@ server <- function(input, output, session) {
             "Up" = input$up_col,
             "Down" = input$dn_col,
             "NS" = "grey70",
-            "Highlighted" = input$highlight_col
+            "Highlighted" = input$high_col
         )
         de_data <- current_de_results()
 
@@ -880,28 +924,15 @@ server <- function(input, output, session) {
             "Up" = input$up_col,
             "Down" = input$dn_col,
             "NS" = "grey70",
-            "Highlighted" = input$highlight_col
+            "Highlighted" = input$high_col
         )
-
-        highlight_vec <- c()
-        if (
-            !is.null(input$highlight_genes) &&
-                nchar(trimws(input$highlight_genes)) > 0
-        ) {
-            # Split by newlines and commas, trim whitespace
-            highlight_vec <- input$highlight_genes %>%
-                strsplit("[\n,]") %>%
-                unlist() %>%
-                trimws() %>%
-                .[nchar(.) > 0]
-        }
 
         .plot_volcano(
             RES = de_data,
             NAME = input$de_comparison,
             padj_CO = input$padj_cutoff_volcano,
             fc_CO = input$lfc_cutoff_volcano,
-            highlights = highlight_vec,
+            highlights = .parse_gene_list(input$highlight_genes),
             COLS = colors_acute,
             LABEL_TOP = input$label_top,
             TOPN = input$n_labels,
@@ -916,7 +947,7 @@ server <- function(input, output, session) {
             "Up" = input$up_col,
             "Down" = input$dn_col,
             "NS" = "grey70",
-            "Highlighted" = input$highlight_col
+            "Highlighted" = input$high_col
         )
         shiny::req(
             current_fes,
@@ -1017,6 +1048,81 @@ server <- function(input, output, session) {
             readr::write_excel_csv2(dif_table, file)
         }
     )
+    ## context enrichment ------
+    context_de_data <- shiny::reactive({
+        de_data <- current_de_results()
+        shiny::req(
+            de_data,
+            rv$current_context,
+            input$row_data_var,
+            input$padj_cutoff_volcano,
+            input$lfc_cutoff_volcano
+        )
+        de_data
+    })
+
+    output$context_volcano <- plotly::renderPlotly({
+        .plot_volcano(
+            RES = context_de_data(),
+            NAME = paste(input$de_comparison, "-", input$context_item),
+            padj_CO = input$padj_cutoff_volcano,
+            fc_CO = input$lfc_cutoff_volcano,
+            highlights = rv$current_context,
+            COLS = c(
+                "Up" = input$up_col,
+                "Down" = input$dn_col,
+                "NS" = "grey70",
+                "Highlighted" = input$high_col
+            ),
+            LABEL_TOP = FALSE,
+            LABEL_HIGHLIGHTS = FALSE,
+            gene_var = input$row_data_var
+        )
+    })
+
+    output$context_heading <- shiny::renderText({
+        if (shiny::isTruthy(input$context_item)) {
+            paste0(
+                "Overrepresentation of '",
+                input$context_item,
+                "' in DE genes"
+            )
+        } else {
+            "Overrepresentation of the context in DE genes"
+        }
+    })
+
+    output$context_enrichment <- DT::renderDT({
+        ctx_res <- .check_context_enrichment(
+            context_de_data(),
+            rv$current_context,
+            padj_CO = input$padj_cutoff_volcano,
+            fc_CO = input$lfc_cutoff_volcano,
+            gene_var = input$row_data_var
+        )
+        shiny::validate(
+            shiny::need(
+                nrow(ctx_res) > 0,
+                "No DE genes at these cutoffs, or none of the context genes match the selected gene identifier."
+            )
+        )
+
+        DT::datatable(
+            ctx_res,
+            colnames = c(
+                "Direction" = "direction",
+                "DE genes" = "n_genes",
+                "Context size" = "context_size",
+                "Context genes tested" = "context_size_tested",
+                "Overlap" = "overlap",
+                "Fold enrichment" = "fold_enrichment",
+                "p value" = "pvalue"
+            ),
+            options = list(dom = "t", scrollX = TRUE),
+            rownames = FALSE
+        ) %>%
+            DT::formatSignif("p value", digits = 3)
+    })
 }
 # nocov end
 
@@ -1036,6 +1142,9 @@ server <- function(input, output, session) {
 #'
 #' @param file a string leading to a file you want loaded as a default
 #' @param object a summarizedExperiment object (or DeeDeeExperiment) to load in
+#' @param context a named list of gene vectors to load as context lists. The
+#' names are used as the context names, and the genes have to match one of
+#' the gene identifiers in the `rowData`.
 #'
 #' @returns an application
 #' @export
@@ -1045,8 +1154,16 @@ server <- function(input, output, session) {
 #' if(interactive()){
 #' shiny::runApp(app, port = 1234)
 #'}
+#'
+#' app <- exploreSE(context = list(
+#'     my_genes = c("Gene_1", "Gene_2", "Gene_3")
+#' ))
 
-exploreSE <- function(file = NULL, object = NULL) {
-    shiny::shinyOptions(set_file_name = file, set_object = object)
+exploreSE <- function(file = NULL, object = NULL, context = NULL) {
+    shiny::shinyOptions(
+        set_file_name = file,
+        set_object = object,
+        set_context = .validate_context(context)
+    )
     shiny::shinyApp(ui, server)
 }

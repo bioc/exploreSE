@@ -295,7 +295,8 @@
     COLS,
     LABEL_TOP = TRUE,
     TOPN = 5,
-    gene_var = "gene_id"
+    gene_var = "gene_id",
+    LABEL_HIGHLIGHTS = TRUE
 ) {
     gene_var <- rlang::sym(gene_var)
     # Prep data
@@ -316,7 +317,10 @@
             display_category = dplyr::case_when(
                 highlighted ~ "Highlighted",
                 TRUE ~ sig
-            )
+            ) |>
+                # plotly draws one trace per level in this order, so
+                # Highlighted has to come last to end up on top
+                factor(levels = c("NS", "Down", "Up", "Highlighted"))
         )
 
     # Identify top genes
@@ -329,15 +333,11 @@
     }
 
     # highlighted genes
-    if (length(highlights) > 0) {
+    if (LABEL_HIGHLIGHTS && length(highlights) > 0) {
         highlighted_genes <- volcano_df %>%
             dplyr::filter(highlighted)
         genes_to_label <- rbind(genes_to_label, highlighted_genes)
     }
-
-    # Reorder for plotly
-    volcano_df <- volcano_df %>%
-        dplyr::arrange(highlighted)
 
     #  plot
     p <- ggplot2::ggplot(
@@ -819,4 +819,176 @@
         )
 
     return(genes_with_diff)
+}
+
+
+#' tests for overrepresentation of a gene set (CONTEXT) among up- and
+#' down-regulated genes, using all tested genes as the universe.
+#' directions without DE genes are dropped from the table
+#' @noRd
+.check_context_enrichment <- function(
+    RES,
+    CONTEXT,
+    padj_CO = 0.05,
+    fc_CO = 1,
+    gene_var = "gene_id"
+) {
+    tested_genes <- RES |>
+        dplyr::filter(
+            !is.na(padj) & !is.na(log2FoldChange) & !is.infinite(log2FoldChange)
+        ) |>
+        dplyr::mutate(gene_id = .data[[gene_var]]) |>
+        dplyr::filter(!is.na(gene_id))
+
+    universe <- unique(tested_genes$gene_id)
+    context_raw <- unique(CONTEXT[!is.na(CONTEXT)])
+    context <- intersect(context_raw, universe)
+
+    gene_sets <- list(
+        "up regulated genes" = dplyr::filter(
+            tested_genes,
+            padj < padj_CO,
+            log2FoldChange > fc_CO
+        ),
+        "down regulated genes" = dplyr::filter(
+            tested_genes,
+            padj < padj_CO,
+            log2FoldChange < -fc_CO
+        )
+    ) |>
+        purrr::map(\(x) unique(x$gene_id)) |>
+        purrr::discard(\(x) length(x) == 0)
+
+    if (length(gene_sets) == 0 || length(context) == 0) {
+        return(data.frame())
+    }
+
+    purrr::imap(gene_sets, \(genes, direction) {
+        n_universe <- length(universe)
+        n_genes <- length(genes)
+        n_context <- length(context)
+        n_overlap <- length(intersect(genes, context))
+        data.frame(
+            direction = direction,
+            n_genes = n_genes,
+            context_size = length(context_raw),
+            context_size_tested = n_context,
+            overlap = n_overlap,
+            fold_enrichment = round(
+                (n_overlap / n_genes) / (n_context / n_universe),
+                2
+            ),
+            pvalue = stats::phyper(
+                n_overlap - 1,
+                n_context,
+                n_universe - n_context,
+                n_genes,
+                lower.tail = FALSE
+            )
+        )
+    }) |>
+        dplyr::bind_rows()
+}
+
+#' splits pasted text or the lines of a file into a clean gene vector.
+#' splits on whitespace, commas and semicolons and strips surrounding quotes
+#' @noRd
+.parse_gene_list <- function(x) {
+    if (length(x) == 0) {
+        return(character())
+    }
+    genes <- x |>
+        strsplit("[\\s,;]+", perl = TRUE) |>
+        unlist() |>
+        stringr::str_remove_all('^"+|"+$') |>
+        trimws()
+    unique(genes[nchar(genes) > 0])
+}
+
+#' reads an uploaded context file. A file with several lines whose first line
+#' has several tab-, semicolon- or comma-separated fields is read as a table
+#' with a header, giving one gene list per column named by its header.
+#' Anything else is read as a single, unnamed gene list.
+#' @noRd
+.read_context_file <- function(path) {
+    lines <- readLines(path, warn = FALSE)
+    lines <- lines[nchar(trimws(lines)) > 0]
+
+    sep <- NA_character_
+    if (length(lines) >= 2) {
+        sep <- dplyr::case_when(
+            grepl("\t", lines[[1]]) ~ "\t",
+            grepl(";", lines[[1]]) ~ ";",
+            grepl(",", lines[[1]]) ~ ",",
+            TRUE ~ NA_character_
+        )
+    }
+    if (is.na(sep)) {
+        return(list(.parse_gene_list(lines)))
+    }
+
+    tbl <- utils::read.table(
+        text = lines,
+        sep = sep,
+        header = TRUE,
+        quote = "\"",
+        colClasses = "character",
+        check.names = FALSE,
+        na.strings = c("", "NA"),
+        strip.white = TRUE,
+        fill = TRUE,
+        comment.char = ""
+    )
+    col_names <- names(tbl)
+    col_names[col_names == ""] <- paste(
+        "Column",
+        which(col_names == "")
+    )
+    tbl |>
+        as.list() |>
+        purrr::set_names(col_names) |>
+        purrr::map(\(x) unique(x[!is.na(x) & nchar(x) > 0])) |>
+        purrr::discard(\(x) length(x) == 0)
+}
+
+#' checks the context passed to exploreSE(): a named list of gene vectors.
+#' removes NA, empty and duplicated genes from each element
+#' @noRd
+.validate_context <- function(context) {
+    if (is.null(context)) {
+        return(NULL)
+    }
+    if (!is.list(context) || is.data.frame(context)) {
+        stop("`context` must be a named list of gene vectors.", call. = FALSE)
+    }
+    ctx_names <- names(context)
+    if (
+        is.null(ctx_names) ||
+            any(is.na(ctx_names) | trimws(ctx_names) == "")
+    ) {
+        stop("All elements of `context` must be named.", call. = FALSE)
+    }
+    if (anyDuplicated(ctx_names)) {
+        stop("The names of `context` must be unique.", call. = FALSE)
+    }
+    if (!all(purrr::map_lgl(context, is.atomic))) {
+        stop(
+            "Every element of `context` must be a vector of gene identifiers.",
+            call. = FALSE
+        )
+    }
+
+    context <- purrr::map(context, \(x) {
+        x <- trimws(as.character(x))
+        unique(x[!is.na(x) & x != ""])
+    })
+    empty <- names(context)[lengths(context) == 0]
+    if (length(empty) > 0) {
+        stop(
+            "These elements of `context` contain no genes: ",
+            paste(empty, collapse = ", "),
+            call. = FALSE
+        )
+    }
+    context
 }

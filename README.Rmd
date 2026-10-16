@@ -206,6 +206,18 @@ Direct comparison of fold changes across models can generate insights into the d
 
 ![FC-FC plot of the baseline and cell-controlled models.](https://raw.githubusercontent.com/jaspitzer/exploreSE/master/vignettes/screenshots/fc_fc.png)
 
+Below the plot, a table highlights genes with a fold change difference larger than the selected threshold (default: 1). This table can be downloaded.
+
+## Putting your DE results into context
+
+One way to interpret your results is to put them into a larger context. Looking for enriched biological themes, as above, is one way to do this, but the context can also be more specific. In the Context tab of `exploreSE`, you can add your own gene lists, for example known genetic risk factors for the disease in question or genes of interest from other experiments. To add a gene list, click the "Add context" button and either paste the gene identifiers directly or upload a delimited file with one gene list per column and the name of each context as its column header. Please note that genes are matched only on the selected gene identifier, so the list has to use the same type of identifier.
+
+The context is then overlaid on the volcano plot of the selected comparison, and its overrepresentation among both up- and downregulated genes is tested with a hypergeometric test, using all tested genes as the background.
+
+![A dexamethasone response signature overlaid on the differential expression results.](https://raw.githubusercontent.com/jaspitzer/exploreSE/master/vignettes/screenshots/context.png)
+
+An important methodological note: the results of this overrepresentation analysis should be taken with a grain of salt, since a) the p-values are not adjusted for multiple testing and b) the (researcher-selected) context is probably not independent of the experiment whose results are being analysed. For example, the response signature shown here is partly derived from the `airway` dataset itself, so its enrichment is circular.
+
 # FAQ
 
 **Q: How do I add results into the summarizedExperiment?**

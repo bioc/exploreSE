@@ -4,12 +4,16 @@
 \alias{exploreSE}
 \title{exploreSE}
 \usage{
-exploreSE(file = NULL, object = NULL)
+exploreSE(file = NULL, object = NULL, context = NULL)
 }
 \arguments{
 \item{file}{a string leading to a file you want loaded as a default}
 
 \item{object}{a summarizedExperiment object (or DeeDeeExperiment) to load in}
+
+\item{context}{a named list of gene vectors to load as context lists. The
+names are used as the context names, and the genes have to match one of
+the gene identifiers in the \code{rowData}.}
 }
 \value{
 an application
@@ -29,4 +33,8 @@ app <- exploreSE()
 if(interactive()){
 shiny::runApp(app, port = 1234)
 }
+
+app <- exploreSE(context = list(
+    my_genes = c("Gene_1", "Gene_2", "Gene_3")
+))
 }
