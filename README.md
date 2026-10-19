@@ -7,10 +7,10 @@
 
 <!-- badges: end -->
 
-exploreSE is package that provides an interactive Shiny-based user
+exploreSE is a package that provides an interactive Shiny-based user
 interface for exploring transcriptional data and analysis results stored
 in
-[summarizedExperiment](https://www.bioconductor.org/packages/release/bioc/html/tidySummarizedExperiment.html)
+[SummarizedExperiment](https://www.bioconductor.org/packages/release/bioc/html/SummarizedExperiment.html)
 or
 [DeeDeeExperiment](https://bioconductor.org/packages//release/bioc/html/DeeDeeExperiment.html)
 format. The aim is to facilitate easy comparison between different model
@@ -27,23 +27,23 @@ if (!requireNamespace("BiocManager", quietly = TRUE)) {
 BiocManager::install("exploreSE")
 ```
 
-Alternatively, the devlopment version can be installed via `pak`:
+Alternatively, the development version can be installed via `pak`:
 
 ``` r
 pak::pak("jaspitzer/exploreSE")
 ```
 
-Once installed, the packages can be accessed through the following bit
-of code:
+Once installed, the package can be loaded with the following bit of
+code:
 
 ``` r
 library(exploreSE)
 ```
 
 To explore the results of differential expression analysis, we need to
-organise them in the structure and you will learn how to do that in this
-vignette. If you want to explore on your own, you can run the following
-code and start exploring the example data.
+organise them in a specific structure, and you will learn how to do that
+in this vignette. If you want to explore on your own, you can run the
+following code and start exploring the example data.
 
 ``` r
 example(exploreSE, ask = FALSE)
@@ -72,9 +72,9 @@ airway
 #> colData names(9): SampleName cell ... Sample BioSample
 ```
 
-Out of the box, the `airway` object is `summarizedExperiment` object,
+Out of the box, the `airway` object is a `SummarizedExperiment` object,
 containing eight samples from four cell lines. This information is
-available in `coldata(airway)`.
+available in `colData(airway)`.
 
 ``` r
 colData(airway)
@@ -157,10 +157,10 @@ dim(airway)
 #> [1] 22810     8
 ```
 
-Let’s start our anaylsis. Using the
+Let’s start our analysis. Using the
 [DESeq2](https://bioconductor.org/packages/release/bioc/html/DESeq2.html)
-package, we will convert airway into an `DESeqDataSet` and build a
-simple model based the dexamethasone stimulation stored in the `dex`
+package, we will convert `airway` into a `DESeqDataSet` and build a
+simple model based on the dexamethasone stimulation stored in the `dex`
 variable.
 
 ``` r
@@ -181,7 +181,7 @@ cell_controlled <- results(airway)
 
 Using the
 [DeeDeeExperiment](https://bioconductor.org/packages//release/bioc/html/DeeDeeExperiment.html)
-package, we will store these results in the their respective slots.
+package, we will store these results in their respective slots.
 
 ``` r
 library(DeeDeeExperiment)
@@ -211,10 +211,11 @@ airway
 #> fea(0):
 ```
 
-In addition to differential expression anaylsis, we can also explore
-some biological data mining, in this case GO ORA. Here we use the
-`get.gos()` function from the `exploreSE` package, but it just populates
-the FEA slot of the DeeDeeExperiment.
+In addition to differential expression analysis, we can also explore
+functional enrichment results, in this case a GO over-representation
+analysis (ORA). Here we use the `get.gos()` function from the
+`exploreSE` package, but it just populates the FEA slot of the
+DeeDeeExperiment.
 
 ``` r
 airway <- get.gos(obj = airway, NAME = "baseline", gene_type = "ENSEMBL")
@@ -240,7 +241,7 @@ airway
 #> fea(4): baseline_up_go, baseline_down_go, cell_controlled_up_go, cell_controlled_down_go
 ```
 
-Now that our data is ready, we can explore the data.
+Now that our data is ready, we can start exploring.
 
 # Launching the App
 
@@ -258,53 +259,59 @@ shiny::runApp(app, port = 1234)
 <figure>
 <img
 src="https://raw.githubusercontent.com/jaspitzer/exploreSE/master/vignettes/screenshots/opening_view.png"
-title="testing" alt="Opening View." />
+alt="Opening View." />
 <figcaption aria-hidden="true">Opening View.</figcaption>
 </figure>
 
-After starting the app, you are created with an overview of the metadata
-in the `colData` of the relevant `summarizedExperiment`, as well as a
-search- and scrollable view of the same table. On the left hand side,
-you can load in a different object from the local environment if desired
-under the “Data Input header” - should you start up the app without any
-data, the “Use Demo Data” checkbox will be checked and some demo data
-will be generated for you. Below that, you will find some options for
-the your data exploration throughout the app. Options that are specific
-to the one panel only are integrated into that panel, but globally
-relevant options appear in the sidebar as needed. You will have your
-choice of the relevant gene identifier; by default it picks the first
-column from your `rowData`, but with the drop-down menu that behavior
-can be changed. Secondly, you can pick your differential expression
-analysis; these come from the relevant slots from the underlying
-`DeeDeeExperiment` or m̀etdata()\`.
+After starting the app, you are presented with an overview of the
+metadata in the `colData` of the relevant `SummarizedExperiment`, as
+well as a searchable and scrollable view of the same table. On the
+left-hand side, you can load in a different object from the local
+environment if desired under the “Data Input” header - should you start
+up the app without any data, the “Use Demo Data” checkbox will be
+checked and some demo data will be generated for you. Below that, you
+will find some options for your data exploration throughout the app.
+Options that are specific to one panel are integrated into that panel,
+but globally relevant options appear in the sidebar as needed. You will
+have your choice of the relevant gene identifier; by default it picks
+the `gene_name` column of your `rowData` if present, and otherwise the
+first suitable column, but this can be changed with the drop-down menu.
+Secondly, you can pick your differential expression analysis; these come
+from the relevant slots from the underlying `DeeDeeExperiment` or
+`metadata()`.
 
 ## Overview
 
-On the top side, you have 6 riders to choose from: 1. Overview,
-currently selected 2. PCA; an overview of the principle component
-visualisation 3. Gene Expression, where the expression of a selected
-gene is visualised 4. DE Results; the currently selected DE comparison
-is summarised and visualised 5. Volcano Plot: a volcano plot of the
-selected DE comparison 6. Enrichment Results: present enrichment results
-are plotted
+At the top, you have 8 tabs to choose from:
+
+1.  Overview: currently selected
+2.  PCA: a principal component analysis of the samples
+3.  Gene Expression: the expression of a selected gene is visualised
+4.  DE Results: the currently selected DE comparison is summarised and
+    visualised
+5.  Volcano Plot: a volcano plot of the selected DE comparison
+6.  Enrichment Results: the available enrichment results are plotted
+7.  FC FC: the fold changes of two DE comparisons are compared
+8.  Context: your own gene lists are overlaid on the selected DE
+    comparison
 
 ## PCA view
 
-Progressing through the app, you can navigate to the PCA rider. ![View
-of the PCA
-rider](https://raw.githubusercontent.com/jaspitzer/exploreSE/master/vignettes/screenshots/pca_baseline.png)
+Progressing through the app, you can navigate to the PCA tab. ![View of
+the PCA
+tab](https://raw.githubusercontent.com/jaspitzer/exploreSE/master/vignettes/screenshots/pca_baseline.png)
 
-You can select the coloring scheme of the the points in the drop down
-menu, as well as how many genes are used to calculate the PCA. In the
-`airway` dataset, the dexamethasone treatment, saved in the `dex`
-variable, is the primary variable of interest, but you can also select
-other from the dropdown menu.
+You can select the colouring scheme of the points in the drop-down menu,
+as well as how many genes are used to calculate the PCA. In the `airway`
+data set, the dexamethasone treatment, saved in the `dex` variable, is
+the primary variable of interest, but you can also select others from
+the drop-down menu.
 
 <figure>
 <img
 src="https://raw.githubusercontent.com/jaspitzer/exploreSE/master/vignettes/screenshots/pca_dex.png"
-alt="Alternate coloring of the PCA" />
-<figcaption aria-hidden="true">Alternate coloring of the
+alt="Alternative colouring of the PCA" />
+<figcaption aria-hidden="true">Alternative colouring of the
 PCA</figcaption>
 </figure>
 
@@ -315,8 +322,8 @@ selected genes. By selecting a value in the Color/Group by drop-down
 menu, you can select the value on the x-axis. You can also
 include/exclude certain levels of that variable through the tick boxes
 on the left. The gene being plotted is selected by the “Select Gene”
-dropdown, which is searchable. Any values visible in the plot can be
-exported from the table below.
+drop-down menu, which is searchable. Any values visible in the plot can
+be exported from the table below.
 
 <figure>
 <img
@@ -340,12 +347,12 @@ baseline model.</figcaption>
 </figure>
 
 On the top of the page, a little overview indicates all the comparisons
-found in the respective slots. Below, a barchart indicates the number of
-differentially expressed genes. The specifics of the results can looked
-up in a table below and exported.
+found in the respective slots. Below, a bar chart indicates the number
+of differentially expressed genes. The specifics of the results can be
+looked up in a table below and exported.
 
 This view also exists for each comparison; selecting a different
-comparison from the drop-down menu on the left hand side refreshes the
+comparison from the drop-down menu on the left-hand side refreshes the
 view:
 
 <figure>
@@ -358,8 +365,8 @@ cell-controlled model.</figcaption>
 
 ## Volcano plot
 
-A graphical overview over the differential expression can be found in
-the Volcano Plot tab.
+A graphical overview of the differential expression can be found in the
+Volcano Plot tab.
 
 <figure>
 <img
@@ -369,16 +376,16 @@ alt="Volcano plot of the baseline model." />
 model.</figcaption>
 </figure>
 
-On the top of this tab, a variety of graphical settings can be
-determined: the cutoffs for the different colors, a number of genes to
-label and the colorcode are all freely changeable. Again, this view
-depends on the selected comparison.
+On the top of this tab, a variety of graphical settings can be set: the
+cutoffs for the different colours, a number of genes to label and the
+colour code are all freely changeable. Again, this view depends on the
+selected comparison.
 
 ## Enrichment results
 
 For interpretation of these results, you often rely on the different
-enrichment methods that to determine which biological themes or pathways
-are altered in a given comparison. These results are visualised in the
+enrichment methods to determine which biological themes or pathways are
+altered in a given comparison. These results are visualised in the
 Enrichment Results tab.
 
 <figure>
@@ -392,7 +399,8 @@ model.</figcaption>
 In this case, we are looking at the GO term enrichments for the baseline
 model. Like before, some graphical adjustments can be set at the top.
 Below, we have two bar charts, one for each direction of the comparison.
-The genes driving the enrichment are written inside the bars.
+The genes driving the enrichment can be shown inside the bars and upon
+hover after ticking the box in the options.
 
 ## Comparison of Fold Changes
 
@@ -433,8 +441,17 @@ the `gene_name` column of the `rowData`:
 
 ``` r
 dex_response <- c(
-  "FKBP5", "TSC22D3", "DUSP1", "PER1", "KLF15", "DDIT4",
-  "ERRFI1", "NFKBIA", "MT2A", "ZFP36", "CRISPLD2"
+  "FKBP5",
+  "TSC22D3",
+  "DUSP1",
+  "PER1",
+  "KLF15",
+  "DDIT4",
+  "ERRFI1",
+  "NFKBIA",
+  "MT2A",
+  "ZFP36",
+  "CRISPLD2"
 )
 app <- exploreSE(
   object = airway,
@@ -461,22 +478,23 @@ analysis should be taken with a grain of salt, since a) the p-values are
 not adjusted for multiple testing and b) the (researcher-selected)
 context is probably not independent of the experiment whose results are
 being analysed. For example, the response signature shown here is partly
-derived from the `airway` dataset itself, so its enrichment is circular.
+derived from the `airway` data set itself, so its enrichment is
+circular.
 
 # FAQ
 
-**Q: How do I add results into the summarizedExperiment?** A: The
+**Q: How do I add results into the SummarizedExperiment?** A: The
 easiest way is to use the `DeeDeeExperiment` extension of the
-`summarizedExperiment` class. You can use the dedicated DEA and FEA
+`SummarizedExperiment` class. You can use the dedicated DEA and FEA
 slots. There is a detailed explanation
 [here](https://bioconductor.org/packages//release/bioc/vignettes/DeeDeeExperiment/inst/doc/DeeDeeExperiment_manual.html).
-If you do not want that, you can add it to the `summarizedExperiment`
-metadata, using `de-results`and `fe_results`as names.
+If you do not want that, you can add them to the `SummarizedExperiment`
+metadata, using `de_results` and `fe_results` as names.
 
-**Q: can I use the explorer to perform analysis?** A: No, this app is
-only design to visualise already performed analyses. All decisions on
-what to test, what enrichments to run should happen before you start the
-app and make use of the package.
+**Q: Can I use the explorer to perform analysis?** A: No, this app is
+only designed to visualise already performed analyses. All decisions on
+what to test and which enrichments to run should happen before you start
+the app and make use of the package.
 
 # Session Info
 

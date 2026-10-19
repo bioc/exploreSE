@@ -54,4 +54,7 @@
 * bug fixes with regards to demo data and gene identifiers
 * minor refactor for parsing of input lists
 
+# exploreSE 0.99.15
+* fixed spelling and style in the vignette and README
+
 
