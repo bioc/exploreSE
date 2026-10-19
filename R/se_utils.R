@@ -60,23 +60,6 @@ get.gos <- function(NAME, obj, species = "hs", gene_type = "SYMBOL") {
     dplyr::filter(!is.na(padj)) %>%
     dplyr::pull(gene)
 
-  up_go <- clusterProfiler::enrichGO(
-    up_genes,
-    DB,
-    keyType = gene_type,
-    ont = "BP",
-    universe = universe
-  ) %>%
-    BiocGenerics::as.data.frame()
-  dn_go <- clusterProfiler::enrichGO(
-    dn_genes,
-    DB,
-    keyType = gene_type,
-    ont = "BP",
-    universe = universe
-  ) %>%
-    BiocGenerics::as.data.frame()
-
   if (!methods::is(obj, "DeeDeeExperiment")) {
     obj <- DeeDeeExperiment::DeeDeeExperiment(obj)
   }
@@ -188,7 +171,7 @@ get.gsea <- function(
     gene_sets <- gene_sets %>%
       dplyr::select(gs_name, ensembl_gene) %>%
       dplyr::distinct()
-  } else if (type == "ENTREZID") {
+  } else if (gene_type == "ENTREZID") {
     gene_sets <- gene_sets %>%
       dplyr::select(gs_name, ncbi_gene) %>%
       dplyr::distinct()

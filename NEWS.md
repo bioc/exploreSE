@@ -57,4 +57,7 @@
 # exploreSE 0.99.15
 * fixed spelling and style in the vignette and README
 
+# exploreSE 0.99.16
+* bug fix in get.gos that ran code twice by accident
+
 
