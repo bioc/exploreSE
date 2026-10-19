@@ -425,6 +425,24 @@ with one gene list per column and the name of each context as its column
 header. Please note that genes are matched only on the selected gene
 identifier, so the list has to use the same type of identifier.
 
+Context lists can also be passed when launching the app, as a named list
+of gene vectors through the `context` argument of `exploreSE()`. The
+names of the list are used as the context names. Here, we pass a set of
+well-known glucocorticoid response genes, using gene symbols that match
+the `gene_name` column of the `rowData`:
+
+``` r
+dex_response <- c(
+  "FKBP5", "TSC22D3", "DUSP1", "PER1", "KLF15", "DDIT4",
+  "ERRFI1", "NFKBIA", "MT2A", "ZFP36", "CRISPLD2"
+)
+app <- exploreSE(
+  object = airway,
+  context = list(dex_response = dex_response)
+)
+shiny::runApp(app, port = 1234)
+```
+
 The context is then overlaid on the volcano plot of the selected
 comparison, and its overrepresentation among both up- and downregulated
 genes is tested with a hypergeometric test, using all tested genes as
