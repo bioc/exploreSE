@@ -276,3 +276,14 @@ test_that(".get_context_overlap drops directions without DE genes", {
 
   expect_equal(names(res), "up regulated genes")
 })
+
+# example contexts -----
+
+test_that("the example contexts are valid and match the extdata file", {
+  data("example_contexts", package = "exploreSE", envir = environment())
+  path <- system.file("extdata", "example_contexts.csv", package = "exploreSE")
+
+  expect_equal(names(example_contexts), c("dex_response", "aortic_valve_stenosis"))
+  expect_equal(.validate_context(example_contexts), example_contexts)
+  expect_equal(.read_context_file(path), example_contexts)
+})

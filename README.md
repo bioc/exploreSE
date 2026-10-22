@@ -435,29 +435,27 @@ identifier, so the list has to use the same type of identifier.
 
 Context lists can also be passed when launching the app, as a named list
 of gene vectors through the `context` argument of `exploreSE()`. The
-names of the list are used as the context names. Here, we pass a set of
-well-known glucocorticoid response genes, using gene symbols that match
-the `gene_name` column of the `rowData`:
+names of the list are used as the context names. `exploreSE` comes with
+two example contexts in `example_contexts`: a set of well-known
+glucocorticoid response genes (`dex_response`) and genetic risk factors
+for aortic valve stenosis (`aortic_valve_stenosis`), both as gene
+symbols that match the `gene_name` column of the `rowData`. Here, we
+pass the glucocorticoid response genes:
 
 ``` r
-dex_response <- c(
-  "FKBP5",
-  "TSC22D3",
-  "DUSP1",
-  "PER1",
-  "KLF15",
-  "DDIT4",
-  "ERRFI1",
-  "NFKBIA",
-  "MT2A",
-  "ZFP36",
-  "CRISPLD2"
-)
+data("example_contexts", package = "exploreSE")
 app <- exploreSE(
   object = airway,
-  context = list(dex_response = dex_response)
+  context = example_contexts["dex_response"]
 )
 shiny::runApp(app, port = 1234)
+```
+
+The same contexts are also available as a file with one context per
+column, which you can use to try the “Add context” upload:
+
+``` r
+system.file("extdata", "example_contexts.csv", package = "exploreSE")
 ```
 
 The context is then overlaid on the volcano plot of the selected
@@ -531,7 +529,7 @@ sessionInfo()
 #>  [9] IRanges_2.46.0              S4Vectors_0.50.1           
 #> [11] BiocGenerics_0.58.1         generics_0.1.4             
 #> [13] MatrixGenerics_1.24.0       matrixStats_1.5.0          
-#> [15] exploreSE_0.99.14          
+#> [15] exploreSE_0.99.16          
 #> 
 #> loaded via a namespace (and not attached):
 #>   [1] RColorBrewer_1.1-3      jsonlite_2.0.0          tidydr_0.0.6           

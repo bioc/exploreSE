@@ -1101,41 +1101,7 @@ server <- function(input, output, session) {
         )
     })
 
-    shiny::observeEvent(input$show_context_overlap, {
-        overlap <- .get_context_overlap(
-            context_de_data(),
-            rv$current_context,
-            padj_CO = input$padj_cutoff_volcano,
-            fc_CO = input$lfc_cutoff_volcano,
-            gene_var = input$row_data_var
-        )
-
-        shiny::showModal(shiny::modalDialog(
-            title = paste0(
-                "Overlap of '",
-                input$context_item,
-                "' with DE genes"
-            ),
-            if (length(overlap) == 0) {
-                shiny::helpText("No DE genes at these cutoffs.")
-            },
-            purrr::imap(overlap, \(genes, direction) {
-                htmltools::tagList(
-                    shiny::h5(paste0(direction, " (", length(genes), ")")),
-                    if (length(genes) > 0) {
-                        shiny::tags$pre(
-                            paste(genes, collapse = ", "),
-                            style = "white-space: pre-wrap;"
-                        )
-                    } else {
-                        shiny::helpText("No overlap.")
-                    }
-                )
-            }),
-            footer = shiny::modalButton("Close"),
-            easyClose = TRUE
-        ))
-    })
+    .observe_context_overlap(input, session, rv, context_de_data)
 
     output$context_heading <- shiny::renderText({
         if (shiny::isTruthy(input$context_item)) {

@@ -111,3 +111,37 @@ NULL
 #' @name controlled_down_go
 #' @docType data
 NULL
+
+#' Example context lists
+#'
+#' Example gene lists to use as contexts in the Context tab of [exploreSE()].
+#'
+#' @details
+#' A named list of two gene sets, as gene symbols:
+#' \describe{
+#'   \item{dex_response}{11 well-known glucocorticoid response genes,
+#'   compiled from studies in human dermal fibroblasts, human airway smooth
+#'   muscle cells (the `airway` data set itself) and mouse keratinocytes.}
+#'   \item{aortic_valve_stenosis}{261 genetic risk factors for aortic valve
+#'   stenosis. This set is a placeholder and will be revised.}
+#' }
+#' The same contexts are available as a file with one context per column,
+#' which can be used with the "Add context" upload:
+#' `system.file("extdata", "example_contexts.csv", package = "exploreSE")`.
+#' Both are created by `inst/scripts/creating_example_contexts.R`.
+#'
+#' @source
+#' dex_response: \doi{10.3390/biom11050619}, \doi{10.1371/journal.pone.0099625}
+#' and \doi{10.1016/j.mce.2015.05.015}.
+#'
+#' aortic_valve_stenosis: \doi{10.1038/s41588-025-02417-6}.
+#'
+#' @format A named list of two character vectors.
+#'
+#' @examples
+#' data("example_contexts", package = "exploreSE")
+#' lengths(example_contexts)
+#'
+#' @name example_contexts
+#' @docType data
+NULL
