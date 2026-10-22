@@ -374,7 +374,23 @@ ui <- function(request) {
                             "context_heading",
                             inline = TRUE
                         )),
-                        DT::DTOutput("context_enrichment"),
+                        shiny::fluidRow(
+                            shiny::column(
+                                10,
+                                DT::DTOutput("context_enrichment")
+                            ),
+                            shiny::column(
+                                2,
+                                shiny::conditionalPanel(
+                                    condition = "output.has_context",
+                                    shiny::actionButton(
+                                        "show_context_overlap",
+                                        "Get the Overlap",
+                                        icon = shiny::icon("list")
+                                    )
+                                )
+                            )
+                        ),
                         shiny::helpText(
                             "NOTE: These p-values are not adjusted for multiple testing. Proceed with caution when testing multiple contexts."
                         )
@@ -588,6 +604,11 @@ server <- function(input, output, session) {
         "has_precomputed_fe",
         suspendWhenHidden = FALSE
     )
+
+    output$has_context <- shiny::reactive({
+        length(rv$context_lists) > 0
+    })
+    shiny::outputOptions(output, "has_context", suspendWhenHidden = FALSE)
 
     output$de_status_message <- shiny::renderUI({
         if (has_precomputed_de()) {
@@ -1078,6 +1099,42 @@ server <- function(input, output, session) {
             LABEL_HIGHLIGHTS = FALSE,
             gene_var = input$row_data_var
         )
+    })
+
+    shiny::observeEvent(input$show_context_overlap, {
+        overlap <- .get_context_overlap(
+            context_de_data(),
+            rv$current_context,
+            padj_CO = input$padj_cutoff_volcano,
+            fc_CO = input$lfc_cutoff_volcano,
+            gene_var = input$row_data_var
+        )
+
+        shiny::showModal(shiny::modalDialog(
+            title = paste0(
+                "Overlap of '",
+                input$context_item,
+                "' with DE genes"
+            ),
+            if (length(overlap) == 0) {
+                shiny::helpText("No DE genes at these cutoffs.")
+            },
+            purrr::imap(overlap, \(genes, direction) {
+                htmltools::tagList(
+                    shiny::h5(paste0(direction, " (", length(genes), ")")),
+                    if (length(genes) > 0) {
+                        shiny::tags$pre(
+                            paste(genes, collapse = ", "),
+                            style = "white-space: pre-wrap;"
+                        )
+                    } else {
+                        shiny::helpText("No overlap.")
+                    }
+                )
+            }),
+            footer = shiny::modalButton("Close"),
+            easyClose = TRUE
+        ))
     })
 
     output$context_heading <- shiny::renderText({

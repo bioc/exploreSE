@@ -241,3 +241,38 @@ test_that(".validate_context rejects non-vector and empty elements", {
 test_that("exploreSE validates the context argument", {
   expect_error(exploreSE(context = "TP53"), "named list")
 })
+
+# .get_context_overlap -----
+
+test_that(".get_context_overlap returns the sorted overlap per direction", {
+  res <- .get_context_overlap(
+    make_context_res(),
+    c("G60", "G3", "G1", "G500", "NOT_TESTED"),
+    gene_var = "SYMBOL"
+  )
+
+  expect_equal(
+    res,
+    list(
+      "up regulated genes" = c("G1", "G3"),
+      "down regulated genes" = "G60"
+    )
+  )
+})
+
+test_that(".get_context_overlap matches the overlap column of the enrichment table", {
+  ctx <- paste0("G", c(1:40, 95:120))
+  overlap <- .get_context_overlap(make_context_res(), ctx, gene_var = "SYMBOL")
+  tbl <- .check_context_enrichment(make_context_res(), ctx, gene_var = "SYMBOL")
+
+  expect_equal(unname(lengths(overlap)), tbl$overlap)
+})
+
+test_that(".get_context_overlap drops directions without DE genes", {
+  de <- make_context_res()
+  de <- de[de$log2FoldChange >= 0, ]
+
+  res <- .get_context_overlap(de, c("G1", "G2"), gene_var = "SYMBOL")
+
+  expect_equal(names(res), "up regulated genes")
+})

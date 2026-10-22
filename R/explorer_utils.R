@@ -839,11 +839,10 @@
 }
 
 
-#' tests for overrepresentation of a gene set (CONTEXT) among up- and
-#' down-regulated genes, using all tested genes as the universe.
-#' directions without DE genes are dropped from the table
+#' splits the tested genes into up- and downregulated genes and restricts the
+#' context to the tested genes. directions without DE genes are dropped
 #' @noRd
-.check_context_enrichment <- function(
+.split_context_genes <- function(
     RES,
     CONTEXT,
     padj_CO = 0.05,
@@ -859,9 +858,8 @@
 
     universe <- unique(tested_genes$gene_id)
     context_raw <- unique(CONTEXT[!is.na(CONTEXT)])
-    context <- intersect(context_raw, universe)
 
-    gene_sets <- list(
+    de_genes <- list(
         "up regulated genes" = dplyr::filter(
             tested_genes,
             padj < padj_CO,
@@ -876,19 +874,39 @@
         purrr::map(\(x) unique(x$gene_id)) |>
         purrr::discard(\(x) length(x) == 0)
 
-    if (length(gene_sets) == 0 || length(context) == 0) {
+    list(
+        universe = universe,
+        context_raw = context_raw,
+        context = intersect(context_raw, universe),
+        de_genes = de_genes
+    )
+}
+
+#' tests for overrepresentation of a gene set (CONTEXT) among up- and
+#' down-regulated genes, using all tested genes as the universe.
+#' directions without DE genes are dropped from the table
+#' @noRd
+.check_context_enrichment <- function(
+    RES,
+    CONTEXT,
+    padj_CO = 0.05,
+    fc_CO = 1,
+    gene_var = "gene_id"
+) {
+    split <- .split_context_genes(RES, CONTEXT, padj_CO, fc_CO, gene_var)
+    if (length(split$de_genes) == 0 || length(split$context) == 0) {
         return(data.frame())
     }
 
-    purrr::imap(gene_sets, \(genes, direction) {
-        n_universe <- length(universe)
+    n_universe <- length(split$universe)
+    n_context <- length(split$context)
+    purrr::imap(split$de_genes, \(genes, direction) {
         n_genes <- length(genes)
-        n_context <- length(context)
-        n_overlap <- length(intersect(genes, context))
+        n_overlap <- length(intersect(genes, split$context))
         data.frame(
             direction = direction,
             n_genes = n_genes,
-            context_size = length(context_raw),
+            context_size = length(split$context_raw),
             context_size_tested = n_context,
             overlap = n_overlap,
             fold_enrichment = round(
@@ -905,6 +923,20 @@
         )
     }) |>
         dplyr::bind_rows()
+}
+
+#' returns the context genes found among the up- and downregulated genes,
+#' one sorted vector per direction
+#' @noRd
+.get_context_overlap <- function(
+    RES,
+    CONTEXT,
+    padj_CO = 0.05,
+    fc_CO = 1,
+    gene_var = "gene_id"
+) {
+    split <- .split_context_genes(RES, CONTEXT, padj_CO, fc_CO, gene_var)
+    purrr::map(split$de_genes, \(genes) sort(intersect(genes, split$context)))
 }
 
 #' splits pasted text or the lines of a file into a clean gene vector.
