@@ -318,9 +318,8 @@
                 highlighted ~ "Highlighted",
                 TRUE ~ sig
             ) |>
-                # plotly draws one trace per level in this order, so
-                # Highlighted has to come last to end up on top
-                factor(levels = c("NS", "Down", "Up", "Highlighted"))
+                factor(levels = c("NS", "Down", "Up", "Highlighted")),
+            emphasised = highlighted & sig != "NS"
         )
 
     # Identify top genes
@@ -357,8 +356,8 @@
         )
     ) +
         ggplot2::geom_point(ggplot2::aes(
-            size = highlighted,
-            alpha = ifelse(highlighted, 1, 0.6)
+            size = emphasised,
+            alpha = ifelse(emphasised, 1, 0.6)
         )) +
         ggplot2::scale_size_manual(
             values = c("TRUE" = 3, "FALSE" = 1.5),
@@ -415,7 +414,25 @@
     }
 
     p_p <- plotly::ggplotly(p, tooltip = c("text")) %>%
-        plotly::layout(hovermode = "closest") %>%
+        plotly::layout(
+            hovermode = "closest",
+
+            # threshold note at the right end of the padj line
+            annotations = list(
+                x = 1,
+                xref = "paper",
+                xanchor = "right",
+                y = -log10(padj_CO),
+                yref = "y",
+                yanchor = "bottom",
+                text = paste(
+                    "adjusted p-value:",
+                    format(padj_CO, scientific = FALSE, drop0trailing = TRUE)
+                ),
+                showarrow = FALSE,
+                font = list(color = "grey30")
+            )
+        ) %>%
         plotly::style(textposition = "right")
 
     return(p_p)
