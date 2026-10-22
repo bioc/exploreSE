@@ -278,7 +278,10 @@ the `gene_name` column of your `rowData` if present, and otherwise the
 first suitable column, but this can be changed with the drop-down menu.
 Secondly, you can pick your differential expression analysis; these come
 from the relevant slots from the underlying `DeeDeeExperiment` or
-`metadata()`.
+`metadata()`. Finally, the adjusted p-value and log2 fold change cutoffs
+that define differentially expressed genes (default: 0.05 and 1) are set
+in the sidebar as well. They apply to all tabs that use them: Gene
+Expression, DE Results, Volcano Plot, FC FC and Context.
 
 ## Overview
 
@@ -376,10 +379,11 @@ alt="Volcano plot of the baseline model." />
 model.</figcaption>
 </figure>
 
-On the top of this tab, a variety of graphical settings can be set: the
-cutoffs for the different colours, a number of genes to label and the
-colour code are all freely changeable. Again, this view depends on the
-selected comparison.
+The cutoffs for significance are taken from the sidebar, where the
+colour code can be changed as well. On the top of this tab, you can
+choose whether and how many of the top genes are labelled, and highlight
+genes of your choice. Again, this view depends on the selected
+comparison.
 
 ## Enrichment results
 
