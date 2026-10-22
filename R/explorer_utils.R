@@ -426,7 +426,7 @@
                 yref = "y",
                 yanchor = "bottom",
                 text = paste(
-                    "adjusted p-value:",
+                    "FDR:",
                     format(padj_CO, scientific = FALSE, drop0trailing = TRUE)
                 ),
                 showarrow = FALSE,
