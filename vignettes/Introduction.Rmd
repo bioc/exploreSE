@@ -9,6 +9,7 @@ output:
   BiocStyle::html_document:
     toc: true
     toc_depth: 2
+    md_extensions: -implicit_figures
 vignette: >
   %\VignetteIndexEntry{Introduction to exploreSE}
   %\VignetteEngine{knitr::rmarkdown}

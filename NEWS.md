@@ -60,4 +60,6 @@
 # exploreSE 0.99.16
 * bug fix in get.gos that ran code twice by accident
 
-
+# exploreSE 0.99.17
+* added example contexts
+* updates to vignette and readme to reflect the example context

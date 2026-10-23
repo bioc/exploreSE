@@ -256,12 +256,8 @@ app <- exploreSE(object = airway)
 shiny::runApp(app, port = 1234)
 ```
 
-<figure>
-<img
-src="https://raw.githubusercontent.com/jaspitzer/exploreSE/master/vignettes/screenshots/opening_view.png"
-alt="Opening View." />
-<figcaption aria-hidden="true">Opening View.</figcaption>
-</figure>
+![Opening
+View.](https://raw.githubusercontent.com/jaspitzer/exploreSE/master/vignettes/screenshots/opening_view.png)
 
 After starting the app, you are presented with an overview of the
 metadata in the `colData` of the relevant `SummarizedExperiment`, as
@@ -310,13 +306,8 @@ data set, the dexamethasone treatment, saved in the `dex` variable, is
 the primary variable of interest, but you can also select others from
 the drop-down menu.
 
-<figure>
-<img
-src="https://raw.githubusercontent.com/jaspitzer/exploreSE/master/vignettes/screenshots/pca_dex.png"
-alt="Alternative colouring of the PCA" />
-<figcaption aria-hidden="true">Alternative colouring of the
-PCA</figcaption>
-</figure>
+![Alternative colouring of the
+PCA](https://raw.githubusercontent.com/jaspitzer/exploreSE/master/vignettes/screenshots/pca_dex.png)
 
 ## Expression plotting
 
@@ -328,26 +319,16 @@ on the left. The gene being plotted is selected by the “Select Gene”
 drop-down menu, which is searchable. Any values visible in the plot can
 be exported from the table below.
 
-<figure>
-<img
-src="https://raw.githubusercontent.com/jaspitzer/exploreSE/master/vignettes/screenshots/expression.png"
-alt="Overview of the Gene Expression panel" />
-<figcaption aria-hidden="true">Overview of the Gene Expression
-panel</figcaption>
-</figure>
+![Overview of the Gene Expression
+panel](https://raw.githubusercontent.com/jaspitzer/exploreSE/master/vignettes/screenshots/expression.png)
 
 ## DE Results
 
 The heart of this application is the comparison of different possible
 models and within this tab, we are starting that process.
 
-<figure>
-<img
-src="https://raw.githubusercontent.com/jaspitzer/exploreSE/master/vignettes/screenshots/de_baseline.png"
-alt="Differential expression overview for the baseline model." />
-<figcaption aria-hidden="true">Differential expression overview for the
-baseline model.</figcaption>
-</figure>
+![Differential expression overview for the baseline
+model.](https://raw.githubusercontent.com/jaspitzer/exploreSE/master/vignettes/screenshots/de_baseline.png)
 
 On the top of the page, a little overview indicates all the comparisons
 found in the respective slots. Below, a bar chart indicates the number
@@ -358,26 +339,16 @@ This view also exists for each comparison; selecting a different
 comparison from the drop-down menu on the left-hand side refreshes the
 view:
 
-<figure>
-<img
-src="https://raw.githubusercontent.com/jaspitzer/exploreSE/master/vignettes/screenshots/de_controlled.png"
-alt="Differential expression overview for the cell-controlled model." />
-<figcaption aria-hidden="true">Differential expression overview for the
-cell-controlled model.</figcaption>
-</figure>
+![Differential expression overview for the cell-controlled
+model.](https://raw.githubusercontent.com/jaspitzer/exploreSE/master/vignettes/screenshots/de_controlled.png)
 
 ## Volcano plot
 
 A graphical overview of the differential expression can be found in the
 Volcano Plot tab.
 
-<figure>
-<img
-src="https://raw.githubusercontent.com/jaspitzer/exploreSE/master/vignettes/screenshots/volcano_baseline.png"
-alt="Volcano plot of the baseline model." />
-<figcaption aria-hidden="true">Volcano plot of the baseline
-model.</figcaption>
-</figure>
+![Volcano plot of the baseline
+model.](https://raw.githubusercontent.com/jaspitzer/exploreSE/master/vignettes/screenshots/volcano_baseline.png)
 
 The cutoffs for significance are taken from the sidebar, where the
 colour code can be changed as well. On the top of this tab, you can
@@ -392,13 +363,8 @@ enrichment methods to determine which biological themes or pathways are
 altered in a given comparison. These results are visualised in the
 Enrichment Results tab.
 
-<figure>
-<img
-src="https://raw.githubusercontent.com/jaspitzer/exploreSE/master/vignettes/screenshots/gos_baseline.png"
-alt="Enrichment results for the baseline model." />
-<figcaption aria-hidden="true">Enrichment results for the baseline
-model.</figcaption>
-</figure>
+![Enrichment results for the baseline
+model.](https://raw.githubusercontent.com/jaspitzer/exploreSE/master/vignettes/screenshots/gos_baseline.png)
 
 In this case, we are looking at the GO term enrichments for the baseline
 model. Like before, some graphical adjustments can be set at the top.
@@ -412,13 +378,8 @@ Direct comparison of fold changes across models can generate insights
 into the differences. For this, two models can be selected and their
 respective fold changes plotted against each other.
 
-<figure>
-<img
-src="https://raw.githubusercontent.com/jaspitzer/exploreSE/master/vignettes/screenshots/fc_fc.png"
-alt="FC-FC plot of the baseline and cell-controlled models." />
-<figcaption aria-hidden="true">FC-FC plot of the baseline and
-cell-controlled models.</figcaption>
-</figure>
+![FC-FC plot of the baseline and cell-controlled
+models.](https://raw.githubusercontent.com/jaspitzer/exploreSE/master/vignettes/screenshots/fc_fc.png)
 
 Below the plot, a table highlights genes with a fold change difference
 larger than the selected threshold (default: 1). This table can be
@@ -467,13 +428,9 @@ comparison, and its overrepresentation among both up- and downregulated
 genes is tested with a hypergeometric test, using all tested genes as
 the background.
 
-<figure>
-<img
-src="https://raw.githubusercontent.com/jaspitzer/exploreSE/master/vignettes/screenshots/context.png"
-alt="A dexamethasone response signature overlaid on the differential expression results." />
-<figcaption aria-hidden="true">A dexamethasone response signature
-overlaid on the differential expression results.</figcaption>
-</figure>
+![A dexamethasone response signature overlaid on the differential
+expression
+results.](https://raw.githubusercontent.com/jaspitzer/exploreSE/master/vignettes/screenshots/context.png)
 
 An important methodological note: the results of this overrepresentation
 analysis should be taken with a grain of salt, since a) the p-values are
