@@ -112,14 +112,6 @@ ui <- function(request) {
             "comp2_col",
             "Color for DE Comparison 2",
             "#f03405"
-          ),
-          shiny::numericInput(
-            "fcfc_dif",
-            "Difference between fold changes:",
-            value = 0,
-            min = 0,
-            max = 5,
-            step = 0.1
           )
         )
       ),
@@ -129,14 +121,39 @@ ui <- function(request) {
         shiny::tabsetPanel(
           id = "main_tabs",
 
+          shiny::tabPanel(
+            "About",
+            shiny::markdown(
+              "## Welcome to the exploreSE App!
+
+        Here you can explore your RNA-seq data, check gene expression, explore analysis results and put your data into a wider context. 
+        At the top of the page, you have multiple tabs that each cover one aspect of your data.
+        Throughout the app, the sidebar on the left-hand side displays analysis options. Within some tabs, you'll also find additional settings that only apply to that tab. 
+        
+        ### The features of the app:
+        * Overview tab: displays an overview of the data loaded into the app, with a focus on its metadata. Here you will find additional information on your samples, for example which patient a sample was taken from or whether it was treated.
+        * PCA tab: calculated on your data, the PCA shows the spread of your samples. Each sample is coloured by the \"Color/Group by:\" option set on the left.
+        * Gene Expression tab: check the expression of a gene of interest in your data. The expression is shown for each level of the selected grouping variable, and you can select/deselect certain groups. Different gene identifiers can be selected on the left; gene symbols are the most human-readable. Below the plot, the expression values are shown for each sample, and below that, the differential expression status of the gene in the different comparisons. 
+        * DE Results tab: a big-picture overview of the differential expression result selected on the left. A bar chart displays the number of differentially expressed genes, and below it is a table with the test statistics per gene.
+        * Volcano Plot tab: explore your differential expression results as a volcano plot. You can select a number of top genes (by p-value) to label, highlight genes of interest or just hover over a point to get the underlying gene, p-value and fold change.
+        * Enrichment Results tab: shows the enrichment results for the selected DE result. The genes driving each enrichment can be shown as well, using the checkbox at the top of the tab.
+        * FC FC tab: compare DE results to one another, using significance and fold change. Below the plot, you get a table showing all genes that are significant in at least one of the results; you can filter this list by a minimum difference in fold change between the two results in question.
+        * Context tab: it can help to put your results into context, for example with known genetic risk factors. The genes in a context are overlaid on the selected result, and their overrepresentation is tested. You can select a context from the list or add one yourself, either by pasting a list of genes or by uploading a table where each column is a context.
+        
+        
+        If you encounter any issues or have questions, you can let me know [here](https://github.com/jaspitzer/exploreSE/issues). 
+        "
+            )
+          ),
+
           # tab overview ------
           shiny::tabPanel(
             "Overview",
-            shiny::h3("Dataset Summary"),
-            shiny::verbatimTextOutput("data_summary"),
-            shiny::hr(),
             shiny::h4("Sample Metadata"),
-            DT::DTOutput("metadata_table")
+            DT::DTOutput("metadata_table"),
+            shiny::hr(),
+            shiny::h4("Dataset Summary"),
+            shiny::verbatimTextOutput("data_summary")
           ),
           # tab PCA ----
           shiny::tabPanel(
@@ -286,9 +303,7 @@ ui <- function(request) {
               )
             ),
             shiny::hr(),
-            plotly::plotlyOutput("volcano_plot", height = "700px"),
-            shiny::hr(),
-            shiny::h4("Summary Statistics")
+            plotly::plotlyOutput("volcano_plot", height = "700px")
           ),
           # tab enrichment ---
           shiny::tabPanel(
@@ -336,6 +351,14 @@ ui <- function(request) {
               "comparison_comparison",
               "Select Comparison:",
               choices = NULL
+            ),
+            shiny::numericInput(
+              "fcfc_dif",
+              "Difference between fold changes:",
+              value = 0,
+              min = 0,
+              max = 5,
+              step = 0.1
             ),
             shiny::hr(),
             plotly::plotlyOutput("fcfc_plot", height = "700px"),

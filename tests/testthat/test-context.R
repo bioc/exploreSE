@@ -283,7 +283,22 @@ test_that("the example contexts are valid and match the extdata file", {
   data("example_contexts", package = "exploreSE", envir = environment())
   path <- system.file("extdata", "example_contexts.csv", package = "exploreSE")
 
-  expect_equal(names(example_contexts), c("dex_response", "aortic_valve_stenosis"))
+  expect_equal(
+    names(example_contexts),
+    c(
+      "dex_response",
+      "aortic_valve_stenosis_high",
+      "aortic_valve_stenosis_high_medium",
+      "bicuspid_aortic_valve",
+      "thoracic_aortic_aneurysm",
+      "abdominal_aortic_aneurysm",
+      "ascending_aorta_diameter",
+      "descending_aorta_diameter",
+      "coronary_artery_disease_high",
+      "coronary_artery_disease_high_medium",
+      "monogenic_aortic_disease"
+    )
+  )
   expect_equal(.validate_context(example_contexts), example_contexts)
   expect_equal(.read_context_file(path), example_contexts)
 })

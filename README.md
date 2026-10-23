@@ -259,39 +259,42 @@ shiny::runApp(app, port = 1234)
 ![Opening
 View.](https://raw.githubusercontent.com/jaspitzer/exploreSE/master/vignettes/screenshots/opening_view.png)
 
-After starting the app, you are presented with an overview of the
-metadata in the `colData` of the relevant `SummarizedExperiment`, as
-well as a searchable and scrollable view of the same table. On the
-left-hand side, you can load in a different object from the local
-environment if desired under the “Data Input” header - should you start
-up the app without any data, the “Use Demo Data” checkbox will be
-checked and some demo data will be generated for you. Below that, you
-will find some options for your data exploration throughout the app.
-Options that are specific to one panel are integrated into that panel,
-but globally relevant options appear in the sidebar as needed. You will
-have your choice of the relevant gene identifier; by default it picks
-the `gene_name` column of your `rowData` if present, and otherwise the
-first suitable column, but this can be changed with the drop-down menu.
-Secondly, you can pick your differential expression analysis; these come
-from the relevant slots from the underlying `DeeDeeExperiment` or
-`metadata()`. Finally, the adjusted p-value and log2 fold change cutoffs
-that define differentially expressed genes (default: 0.05 and 1) are set
-in the sidebar as well. They apply to all tabs that use them: Gene
-Expression, DE Results, Volcano Plot, FC FC and Context.
+After starting the app, you are presented with an “About” page. You can
+read this information or navigate to the “Overview” tab, where you will
+find an overview of the metadata in the `colData` of the relevant
+`SummarizedExperiment`, as well as a searchable and scrollable view of
+the same table. On the left-hand side, you can load in a different
+object from the local environment if desired under the “Data Input”
+header - should you start up the app without any data, the “Use Demo
+Data” checkbox will be checked and some demo data will be generated for
+you. Below that, you will find some options for your data exploration
+throughout the app. Options that are specific to one panel are
+integrated into that panel, but globally relevant options appear in the
+sidebar as needed. You will have your choice of the relevant gene
+identifier; by default it picks the `gene_name` column of your `rowData`
+if present, and otherwise the first suitable column, but this can be
+changed with the drop-down menu. Secondly, you can pick your
+differential expression analysis; these come from the relevant slots
+from the underlying `DeeDeeExperiment` or `metadata()`. Finally, the
+adjusted p-value and log2 fold change cutoffs that define differentially
+expressed genes (default: 0.05 and 1) are set in the sidebar as well.
+They apply to all tabs that use them: Gene Expression, DE Results,
+Volcano Plot, FC FC and Context.
 
 ## Overview
 
-At the top, you have 8 tabs to choose from:
+At the top, you have 9 tabs to choose from:
 
-1.  Overview: currently selected
-2.  PCA: a principal component analysis of the samples
-3.  Gene Expression: the expression of a selected gene is visualised
-4.  DE Results: the currently selected DE comparison is summarised and
+1.  About: a quick introduction to the app
+2.  Overview: an overview of the metadata of your samples
+3.  PCA: a principal component analysis of the samples
+4.  Gene Expression: the expression of a selected gene is visualised
+5.  DE Results: the currently selected DE comparison is summarised and
     visualised
-5.  Volcano Plot: a volcano plot of the selected DE comparison
-6.  Enrichment Results: the available enrichment results are plotted
-7.  FC FC: the fold changes of two DE comparisons are compared
-8.  Context: your own gene lists are overlaid on the selected DE
+6.  Volcano Plot: a volcano plot of the selected DE comparison
+7.  Enrichment Results: the available enrichment results are plotted
+8.  FC FC: the fold changes of two DE comparisons are compared
+9.  Context: your own gene lists are overlaid on the selected DE
     comparison
 
 ## PCA view
@@ -401,11 +404,13 @@ identifier, so the list has to use the same type of identifier.
 Context lists can also be passed when launching the app, as a named list
 of gene vectors through the `context` argument of `exploreSE()`. The
 names of the list are used as the context names. `exploreSE` comes with
-two example contexts in `example_contexts`: a set of well-known
+example contexts in `example_contexts`: a set of well-known
 glucocorticoid response genes (`dex_response`) and genetic risk factors
-for aortic valve stenosis (`aortic_valve_stenosis`), both as gene
-symbols that match the `gene_name` column of the `rowData`. Here, we
-pass the glucocorticoid response genes:
+for several cardiovascular diseases, such as aortic valve stenosis,
+aortic aneurysms and coronary artery disease (see `?example_contexts`
+for the full list and sources). All are gene symbols that match the
+`gene_name` column of the `rowData`. Here, we pass the glucocorticoid
+response genes:
 
 ``` r
 data("example_contexts", package = "exploreSE")
@@ -490,7 +495,7 @@ sessionInfo()
 #>  [9] IRanges_2.46.0              S4Vectors_0.50.1           
 #> [11] BiocGenerics_0.58.1         generics_0.1.4             
 #> [13] MatrixGenerics_1.24.0       matrixStats_1.5.0          
-#> [15] exploreSE_0.99.16          
+#> [15] exploreSE_0.99.17          
 #> 
 #> loaded via a namespace (and not attached):
 #>   [1] RColorBrewer_1.1-3      jsonlite_2.0.0          tidydr_0.0.6           
