@@ -117,31 +117,28 @@ NULL
 #' Example gene lists to use as contexts in the Context tab of [exploreSE()].
 #'
 #' @details
-#' A named list of 11 gene sets, as gene symbols:
+#' A named list of 9 gene sets, as gene symbols:
 #' \describe{
 #'   \item{dex_response}{11 well-known glucocorticoid response genes,
 #'   compiled from studies in human dermal fibroblasts, human airway smooth
 #'   muscle cells (the `airway` data set itself) and mouse keratinocytes.}
-#'   \item{aortic_valve_stenosis_high}{89 high priority genetic risk factors
-#'   for aortic valve stenosis.}
-#'   \item{aortic_valve_stenosis_high_medium}{261 high and medium priority
-#'   genetic risk factors for aortic valve stenosis.}
-#'   \item{bicuspid_aortic_valve}{46 genetic risk factors for bicuspid aortic
+#'   \item{aortic_valve_stenosis}{261 genetic risk factors for aortic valve
+#'   stenosis.}
+#'   \item{bicuspid_aortic_valve}{44 genetic risk factors for bicuspid aortic
 #'   valve.}
-#'   \item{thoracic_aortic_aneurysm}{100 genetic risk factors for thoracic
+#'   \item{thoracic_aortic_aneurysm}{98 genetic risk factors for thoracic
 #'   aortic aneurysm.}
-#'   \item{abdominal_aortic_aneurysm}{130 genetic risk factors for abdominal
+#'   \item{abdominal_aortic_aneurysm}{128 genetic risk factors for abdominal
 #'   aortic aneurysm.}
-#'   \item{ascending_aorta_diameter}{82 genetic risk factors for an increased
-#'   ascending aorta diameter.}
-#'   \item{descending_aorta_diameter}{47 genetic risk factors for an increased
-#'   descending aorta diameter.}
-#'   \item{coronary_artery_disease_high}{123 high priority genetic risk
-#'   factors for coronary artery disease.}
-#'   \item{coronary_artery_disease_high_medium}{220 high and medium priority
-#'   genetic risk factors for coronary artery disease.}
-#'   \item{monogenic_aortic_disease}{44 genes associated with
-#'   familial/monogenic aortic diseases.}
+#'   \item{ascending_aortic_diameter}{82 genetic risk factors for an increased
+#'   ascending aortic diameter.}
+#'   \item{descending_aortic_diameter}{47 genetic risk factors for an
+#'   increased descending aortic diameter.}
+#'   \item{coronary_artery_disease}{220 genetic risk factors for coronary
+#'   artery disease.}
+#'   \item{monogenic_disease}{42 genes associated with monogenic forms of
+#'   heritable thoracic aortic disease, bicuspid aortic valve and aortic valve
+#'   stenosis.}
 #' }
 #' The same contexts are available as a file with one context per column,
 #' which can be used with the "Add context" upload:
@@ -152,23 +149,27 @@ NULL
 #' \itemize{
 #'   \item dex_response: \doi{10.3390/biom11050619},
 #'   \doi{10.1371/journal.pone.0099625} and \doi{10.1016/j.mce.2015.05.015}.
-#'   \item aortic_valve_stenosis_high, aortic_valve_stenosis_high_medium:
-#'   Small et al. (2025), \doi{10.1038/s41588-025-02417-6}.
+#'   \item aortic_valve_stenosis: Small et al. (2026),
+#'   \doi{10.1038/s41588-025-02417-6}.
 #'   \item bicuspid_aortic_valve: \enc{Thériault}{Theriault} et al. (2026),
-#'   \doi{10.1161/CIRCULATIONAHA.125.074752}.
+#'   \doi{10.1161/CIRCULATIONAHA.125.074752}, and Bravo-Jaimes et al. (2020),
+#'   \doi{10.1016/j.pcad.2020.06.005}.
 #'   \item thoracic_aortic_aneurysm: Klarin et al. (2023),
 #'   \doi{10.1038/s41588-023-01420-z}, and Murdock et al. (2026, preprint),
 #'   \doi{10.64898/2026.09.16.26363254}.
 #'   \item abdominal_aortic_aneurysm: Roychowdhury et al. (2023),
 #'   \doi{10.1038/s41588-023-01510-y}.
-#'   \item ascending_aorta_diameter, descending_aorta_diameter: Pirruccello
+#'   \item ascending_aortic_diameter, descending_aortic_diameter: Pirruccello
 #'   et al. (2022), \doi{10.1038/s41588-021-00962-4}.
-#'   \item coronary_artery_disease_high, coronary_artery_disease_high_medium:
-#'   Aragam et al. (2022), \doi{10.1038/s41588-022-01233-6}.
-#'   \item monogenic_aortic_disease: source to be added.
+#'   \item coronary_artery_disease: Aragam et al. (2022),
+#'   \doi{10.1038/s41588-022-01233-6}.
+#'   \item monogenic_disease: Milewicz et al., Heritable Thoracic Aortic
+#'   Disease Overview, GeneReviews, PMID: 20301299; Bravo-Jaimes et al.
+#'   (2020), \doi{10.1016/j.pcad.2020.06.005}; \enc{Rämö}{Ramo} et al.
+#'   (2024), \doi{10.1161/CIRCULATIONAHA.124.070982}.
 #' }
 #'
-#' @format A named list of 11 character vectors.
+#' @format A named list of 9 character vectors.
 #'
 #' @examples
 #' data("example_contexts", package = "exploreSE")

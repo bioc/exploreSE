@@ -89,3 +89,28 @@ test_that(".plot_volcano handles no significant genes gracefully", {
   )
   expect_s3_class(p, "plotly")
 })
+
+test_that(".about_tabs covers every tab of the app and has a thumbnail for each", {
+  tab_titles <- unlist(lapply(
+    htmltools::tagQuery(ui(NULL))$find(".nav-tabs a")$selectedTags(),
+    \(x) x$attribs[["data-value"]]
+  ))
+  about <- .about_tabs()
+  about_titles <- vapply(about, `[[`, character(1), "tab")
+
+  expect_setequal(about_titles, setdiff(tab_titles, "About"))
+  for (x in about) {
+    expect_true(file.exists(system.file(
+      "app", "www", "thumbnails", x$thumbnail,
+      package = "exploreSE"
+    )))
+  }
+})
+
+test_that(".about_tab_cards links every card to its tab", {
+  html <- as.character(.about_tab_cards())
+  for (x in .about_tabs()) {
+    expect_match(html, paste0('data-tab="', x$tab, '"'), fixed = TRUE)
+    expect_match(html, paste0("exploreSE/thumbnails/", x$thumbnail), fixed = TRUE)
+  }
+})

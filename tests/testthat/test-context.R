@@ -1,5 +1,6 @@
 ## Tests for the context helpers in explorer_utils.R:
-## .check_context_enrichment, .parse_gene_list and .read_context_file
+## .check_context_enrichment, .parse_gene_list, .read_context_file,
+## .identifier_columns and .match_context
 
 make_context_res <- function() {
   data.frame(
@@ -69,6 +70,18 @@ test_that(".check_context_enrichment separates raw and tested context size", {
   )
 
   expect_equal(unique(res$context_size), 3)
+  expect_equal(unique(res$context_size_tested), 2)
+})
+
+test_that(".check_context_enrichment reports a given context size", {
+  res <- .check_context_enrichment(
+    make_context_res(),
+    c("G1", "G2"),
+    gene_var = "SYMBOL",
+    context_size = 10
+  )
+
+  expect_equal(unique(res$context_size), 10)
   expect_equal(unique(res$context_size_tested), 2)
 })
 
@@ -277,6 +290,103 @@ test_that(".get_context_overlap drops directions without DE genes", {
   expect_equal(names(res), "up regulated genes")
 })
 
+# .identifier_columns -----
+
+test_that(".identifier_columns keeps identifier-like columns only", {
+  row_data <- data.frame(
+    gene_id = paste0("ENSG", 1:100),
+    gene_name = c(paste0("G", 1:90), rep("G1", 10)),
+    gene_biotype = rep(c("protein_coding", "lncRNA"), 50),
+    seq_name = rep(c("1", "2", "X", "Y"), 25),
+    entrezid = c(as.character(1:20), rep(NA, 80)),
+    all_na = NA_character_,
+    one_value = "a",
+    start = 1:100
+  )
+
+  expect_equal(
+    .identifier_columns(row_data),
+    c("gene_id", "gene_name", "entrezid")
+  )
+})
+
+test_that(".identifier_columns accepts a DataFrame", {
+  row_data <- S4Vectors::DataFrame(
+    gene_id = paste0("ENSG", 1:10),
+    gene_biotype = rep("protein_coding", 10)
+  )
+
+  expect_equal(.identifier_columns(row_data), "gene_id")
+})
+
+# .match_context -----
+
+make_match_res <- function() {
+  data.frame(
+    gene_ident = paste0("ENSG", 1:5),
+    SYMBOL = c("A", "B", "C", "D", NA),
+    ENTREZ = c("1", "2", "3", "4", "5")
+  )
+}
+
+test_that(".match_context translates a mixed context into the selected identifier", {
+  res <- .match_context(
+    make_match_res(),
+    c("A", "ENSG2", "3", "NOPE"),
+    gene_var = "SYMBOL",
+    GENE_VARS = c("SYMBOL", "ENTREZ", "gene_ident")
+  )
+
+  expect_equal(sort(res$genes), c("A", "B", "C"))
+  expect_equal(res$context_size, 4)
+  expect_equal(res$unmatched, "NOPE")
+  expect_equal(
+    as.vector(res$matched_via),
+    c(1, 1, 1)
+  )
+  expect_equal(names(res$matched_via), c("SYMBOL", "ENTREZ", "gene_ident"))
+})
+
+test_that(".match_context attributes entries to the first matching column", {
+  res_df <- make_match_res()
+  res_df$ALIAS <- c("A", "X", "Y", "Z", "W")
+  res <- .match_context(
+    res_df,
+    "A",
+    gene_var = "gene_ident",
+    GENE_VARS = c("ALIAS", "SYMBOL")
+  )
+
+  expect_equal(res$genes, "ENSG1")
+  expect_equal(as.vector(res$matched_via), c(1, 0))
+})
+
+test_that(".match_context drops missing translations and counts duplicates once", {
+  res <- .match_context(
+    make_match_res(),
+    c("5", "A", "ENSG1", "A", NA, ""),
+    gene_var = "SYMBOL",
+    GENE_VARS = c("SYMBOL", "ENTREZ", "gene_ident")
+  )
+
+  # ENSG5 has no symbol, and A and ENSG1 are the same gene
+  expect_equal(res$genes, "A")
+  expect_equal(res$context_size, 3)
+  expect_length(res$unmatched, 0)
+})
+
+test_that(".match_context ignores identifiers missing from the results", {
+  res <- .match_context(
+    make_match_res(),
+    c("A", "B"),
+    gene_var = "SYMBOL",
+    GENE_VARS = c("SYMBOL", "NOT_A_COLUMN")
+  )
+
+  expect_equal(res$genes, c("A", "B"))
+  expect_equal(names(res$matched_via), "SYMBOL")
+})
+
 # example contexts -----
 
 test_that("the example contexts are valid and match the extdata file", {
@@ -287,16 +397,14 @@ test_that("the example contexts are valid and match the extdata file", {
     names(example_contexts),
     c(
       "dex_response",
-      "aortic_valve_stenosis_high",
-      "aortic_valve_stenosis_high_medium",
+      "aortic_valve_stenosis",
       "bicuspid_aortic_valve",
       "thoracic_aortic_aneurysm",
       "abdominal_aortic_aneurysm",
-      "ascending_aorta_diameter",
-      "descending_aorta_diameter",
-      "coronary_artery_disease_high",
-      "coronary_artery_disease_high_medium",
-      "monogenic_aortic_disease"
+      "ascending_aortic_diameter",
+      "descending_aortic_diameter",
+      "coronary_artery_disease",
+      "monogenic_disease"
     )
   )
   expect_equal(.validate_context(example_contexts), example_contexts)

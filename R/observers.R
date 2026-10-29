@@ -95,17 +95,7 @@
 
     col_vars <- colnames(SummarizedExperiment::colData(rv$se))
 
-    row_vars <- SummarizedExperiment::rowData(rv$se) |>
-      as.data.frame() |>
-      dplyr::select(
-        tidyselect::where(is.character),
-        # tidyselect::contains("id"),
-        tidyselect::contains("entrez")
-      ) |>
-      dplyr::select(tidyselect::where(\(x) {
-        !all(is.na(x)) & dplyr::n_distinct(x, na.rm = TRUE) > 1
-      })) |>
-      names()
+    row_vars <- .identifier_columns(SummarizedExperiment::rowData(rv$se))
     rv$gene_idents <- row_vars
 
     default_col_var <- if ("condition" %in% col_vars) {
@@ -225,8 +215,9 @@
         "A file with several tab-, semicolon- or comma-separated columns is",
         "read as a table: the first row must hold the column headers, and",
         "each column is added as its own context named after its header",
-        "(prefixed with the name above, if given). Gene IDs must match the",
-        "selected gene identifier exactly, including upper/lower case."
+        "(prefixed with the name above, if given). Genes can be given in any",
+        "of the gene identifiers, or a mix of them, and must match exactly,",
+        "including upper/lower case."
       ),
       shiny::textAreaInput(
         "context_genes",
@@ -327,14 +318,22 @@
 }
 
 #' observer for the "Get the Overlap" button in the Context tab; shows the
-#' context genes found among the up- and downregulated genes in a pop-up
+#' context genes found among the up- and downregulated genes in a pop-up,
+#' plus the context entries not found in any gene identifier
 #' @noRd
-.observe_context_overlap <- function(input, session, rv, context_de_data) {
+.observe_context_overlap <- function(
+  input,
+  session,
+  rv,
+  context_de_data,
+  context_match
+) {
   # nocov start
   shiny::observeEvent(input$show_context_overlap, {
+    match <- context_match()
     overlap <- .get_context_overlap(
       context_de_data(),
-      rv$current_context,
+      match$genes,
       padj_CO = input$padj_cutoff_volcano,
       fc_CO = input$lfc_cutoff_volcano,
       gene_var = input$row_data_var
@@ -362,6 +361,45 @@
           }
         )
       }),
+      if (length(match$unmatched) > 0) {
+        htmltools::tagList(
+          shiny::h5(paste0(
+            "Not found in any gene identifier (",
+            length(match$unmatched),
+            ")"
+          )),
+          shiny::tags$pre(
+            paste(match$unmatched, collapse = "\n"),
+            style = "white-space: pre-wrap;"
+          )
+        )
+      },
+      footer = shiny::modalButton("Close"),
+      easyClose = TRUE
+    ))
+  })
+  # nocov end
+}
+
+#' observers for the About tab: clicking a thumbnail or tab name opens that
+#' tab, clicking the question mark shows its description in a pop-up
+#' @noRd
+.observe_about <- function(input, session) {
+  # nocov start
+  about_tabs <- .about_tabs()
+  tab_names <- purrr::map_chr(about_tabs, "tab")
+
+  shiny::observeEvent(input$about_goto, {
+    shiny::req(input$about_goto %in% tab_names)
+    shiny::updateTabsetPanel(session, "main_tabs", selected = input$about_goto)
+  })
+
+  shiny::observeEvent(input$about_help, {
+    shiny::req(input$about_help %in% tab_names)
+    info <- about_tabs[[match(input$about_help, tab_names)]]
+    shiny::showModal(shiny::modalDialog(
+      title = info$tab,
+      shiny::markdown(info$help),
       footer = shiny::modalButton("Close"),
       easyClose = TRUE
     ))

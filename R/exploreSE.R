@@ -129,18 +129,13 @@ ui <- function(request) {
         Here you can explore your RNA-seq data, check gene expression, explore analysis results and put your data into a wider context. 
         At the top of the page, you have multiple tabs that each cover one aspect of your data.
         Throughout the app, the sidebar on the left-hand side displays analysis options. Within some tabs, you'll also find additional settings that only apply to that tab. 
-        
-        ### The features of the app:
-        * Overview tab: displays an overview of the data loaded into the app, with a focus on its metadata. Here you will find additional information on your samples, for example which patient a sample was taken from or whether it was treated.
-        * PCA tab: calculated on your data, the PCA shows the spread of your samples. Each sample is coloured by the \"Color/Group by:\" option set on the left.
-        * Gene Expression tab: check the expression of a gene of interest in your data. The expression is shown for each level of the selected grouping variable, and you can select/deselect certain groups. Different gene identifiers can be selected on the left; gene symbols are the most human-readable. Below the plot, the expression values are shown for each sample, and below that, the differential expression status of the gene in the different comparisons. 
-        * DE Results tab: a big-picture overview of the differential expression result selected on the left. A bar chart displays the number of differentially expressed genes, and below it is a table with the test statistics per gene.
-        * Volcano Plot tab: explore your differential expression results as a volcano plot. You can select a number of top genes (by p-value) to label, highlight genes of interest or just hover over a point to get the underlying gene, p-value and fold change.
-        * Enrichment Results tab: shows the enrichment results for the selected DE result. The genes driving each enrichment can be shown as well, using the checkbox at the top of the tab.
-        * FC FC tab: compare DE results to one another, using significance and fold change. Below the plot, you get a table showing all genes that are significant in at least one of the results; you can filter this list by a minimum difference in fold change between the two results in question.
-        * Context tab: it can help to put your results into context, for example with known genetic risk factors. The genes in a context are overlaid on the selected result, and their overrepresentation is tested. You can select a context from the list or add one yourself, either by pasting a list of genes or by uploading a table where each column is a context.
-        
-        
+
+        Click on a tab below to open it, or on the question mark for more information.
+        "
+            ),
+            .about_tab_cards(),
+            shiny::markdown(
+              "
         If you encounter any issues or have questions, you can let me know [here](https://github.com/jaspitzer/exploreSE/issues). 
         "
             )
@@ -148,7 +143,7 @@ ui <- function(request) {
 
           # tab overview ------
           shiny::tabPanel(
-            "Overview",
+            "Data Overview",
             shiny::h4("Sample Metadata"),
             DT::DTOutput("metadata_table"),
             shiny::hr(),
@@ -363,7 +358,7 @@ ui <- function(request) {
             shiny::hr(),
             plotly::plotlyOutput("fcfc_plot", height = "700px"),
 
-            DT::DTOutput("fcfc_dif"),
+            DT::DTOutput("fcfc_dif_table"),
             shiny::downloadButton(
               "download_fc_fc",
               "Download difference table"
@@ -393,6 +388,10 @@ ui <- function(request) {
             shiny::hr(),
             shiny::h4(shiny::textOutput(
               "context_heading",
+              inline = TRUE
+            )),
+            shiny::helpText(shiny::textOutput(
+              "context_matching",
               inline = TRUE
             )),
             shiny::fluidRow(
@@ -1040,7 +1039,7 @@ server <- function(input, output, session) {
     )
   })
   ## FC FC lists ----------------------------
-  output$fcfc_dif <- DT::renderDT({
+  output$fcfc_dif_table <- DT::renderDT({
     shiny::req(
       rv$se,
       input$de_comparison,
@@ -1103,13 +1102,30 @@ server <- function(input, output, session) {
     de_data
   })
 
+  # contexts can use any (or a mix of) gene identifiers; translate them into
+  # the selected one
+  context_match <- shiny::reactive({
+    match <- .match_context(
+      context_de_data(),
+      rv$current_context,
+      gene_var = input$row_data_var,
+      # selected identifier first, so entries are attributed to it
+      GENE_VARS = unique(c(input$row_data_var, rv$gene_idents, "gene_ident"))
+    )
+    shiny::validate(shiny::need(
+      length(match$genes) > 0,
+      "None of the context genes match any of the gene identifiers."
+    ))
+    match
+  })
+
   output$context_volcano <- plotly::renderPlotly({
     .plot_volcano(
       RES = context_de_data(),
       NAME = paste(input$de_comparison, "-", input$context_item),
       padj_CO = input$padj_cutoff_volcano,
       fc_CO = input$lfc_cutoff_volcano,
-      highlights = rv$current_context,
+      highlights = context_match()$genes,
       COLS = c(
         "Up" = input$up_col,
         "Down" = input$dn_col,
@@ -1122,7 +1138,8 @@ server <- function(input, output, session) {
     )
   })
 
-  .observe_context_overlap(input, session, rv, context_de_data)
+  .observe_context_overlap(input, session, rv, context_de_data, context_match)
+  .observe_about(input, session)
 
   output$context_heading <- shiny::renderText({
     if (shiny::isTruthy(input$context_item)) {
@@ -1136,18 +1153,33 @@ server <- function(input, output, session) {
     }
   })
 
+  output$context_matching <- shiny::renderText({
+    match <- context_match()
+    via <- match$matched_via[match$matched_via > 0]
+    paste0(
+      "Context genes matched via ",
+      paste(via, names(via), collapse = ", "),
+      if (length(match$unmatched) > 0) {
+        paste0("; ", length(match$unmatched), " not found")
+      },
+      "."
+    )
+  })
+
   output$context_enrichment <- DT::renderDT({
+    match <- context_match()
     ctx_res <- .check_context_enrichment(
       context_de_data(),
-      rv$current_context,
+      match$genes,
       padj_CO = input$padj_cutoff_volcano,
       fc_CO = input$lfc_cutoff_volcano,
-      gene_var = input$row_data_var
+      gene_var = input$row_data_var,
+      context_size = match$context_size
     )
     shiny::validate(
       shiny::need(
         nrow(ctx_res) > 0,
-        "No DE genes at these cutoffs, or none of the context genes match the selected gene identifier."
+        "No DE genes at these cutoffs, or none of the context genes were tested."
       )
     )
 
@@ -1204,6 +1236,11 @@ server <- function(input, output, session) {
 #' ))
 
 exploreSE <- function(file = NULL, object = NULL, context = NULL) {
+  # serves the thumbnails of the About tab
+  shiny::addResourcePath(
+    "exploreSE",
+    system.file("app", "www", package = "exploreSE")
+  )
   shiny::shinyOptions(
     set_file_name = file,
     set_object = object,

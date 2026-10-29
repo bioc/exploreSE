@@ -256,11 +256,31 @@ app <- exploreSE(object = airway)
 shiny::runApp(app, port = 1234)
 ```
 
-![Opening
-View.](https://raw.githubusercontent.com/jaspitzer/exploreSE/master/vignettes/screenshots/opening_view.png)
+## About
+
+![About.](https://raw.githubusercontent.com/jaspitzer/exploreSE/master/vignettes/screenshots/about.png)
 
 After starting the app, you are presented with an “About” page. You can
-read this information or navigate to the “Overview” tab, where you will
+navigate to different tabs by clicking on the thumbnails or learn more
+about the possibilities of the app through the question marks.
+
+There are 9 tabs to choose from inside the app:
+
+1.  About: a quick introduction to the app (you are here).
+2.  Data Overview: an overview of the metadata of your samples
+3.  PCA: a principal component analysis of the samples
+4.  Gene Expression: the expression of a selected gene is visualised
+5.  DE Results: the currently selected DE comparison is summarised and
+    visualised
+6.  Volcano Plot: a volcano plot of the selected DE comparison
+7.  Enrichment Results: the available enrichment results are plotted
+8.  FC FC: the fold changes of two DE comparisons are compared
+9.  Context: your own gene lists are overlaid on the selected DE
+    comparison
+
+## Overview
+
+Initially, you can navigate to the “Data Overview” tab, where you will
 find an overview of the metadata in the `colData` of the relevant
 `SummarizedExperiment`, as well as a searchable and scrollable view of
 the same table. On the left-hand side, you can load in a different
@@ -280,22 +300,6 @@ adjusted p-value and log2 fold change cutoffs that define differentially
 expressed genes (default: 0.05 and 1) are set in the sidebar as well.
 They apply to all tabs that use them: Gene Expression, DE Results,
 Volcano Plot, FC FC and Context.
-
-## Overview
-
-At the top, you have 9 tabs to choose from:
-
-1.  About: a quick introduction to the app
-2.  Overview: an overview of the metadata of your samples
-3.  PCA: a principal component analysis of the samples
-4.  Gene Expression: the expression of a selected gene is visualised
-5.  DE Results: the currently selected DE comparison is summarised and
-    visualised
-6.  Volcano Plot: a volcano plot of the selected DE comparison
-7.  Enrichment Results: the available enrichment results are plotted
-8.  FC FC: the fold changes of two DE comparisons are compared
-9.  Context: your own gene lists are overlaid on the selected DE
-    comparison
 
 ## PCA view
 
@@ -398,8 +402,11 @@ risk factors for the disease in question or genes of interest from other
 experiments. To add a gene list, click the “Add context” button and
 either paste the gene identifiers directly or upload a delimited file
 with one gene list per column and the name of each context as its column
-header. Please note that genes are matched only on the selected gene
-identifier, so the list has to use the same type of identifier.
+header. The gene identifiers are matched against all gene identifier
+columns of the `rowData`, so a list can use any of them, or even a mix,
+and is shown in the identifier selected in the sidebar. Matching is
+case-sensitive, and entries that are not found are listed under “Get the
+Overlap”.
 
 Context lists can also be passed when launching the app, as a named list
 of gene vectors through the `context` argument of `exploreSE()`. The

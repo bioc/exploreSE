@@ -839,6 +839,53 @@
 }
 
 
+#' finds the rowData columns that can serve as gene identifiers: character (or
+#' entrez) columns whose non-missing values are mostly unique. drops columns
+#' like gene_biotype or seq_name, which are character but not identifiers
+#' @noRd
+.identifier_columns <- function(row_data, min_unique = 0.5) {
+    row_data |>
+        as.data.frame() |>
+        dplyr::select(
+            tidyselect::where(is.character),
+            tidyselect::contains("entrez")
+        ) |>
+        dplyr::select(tidyselect::where(\(x) {
+            x <- x[!is.na(x)]
+            length(x) > 0 &&
+                dplyr::n_distinct(x) > 1 &&
+                dplyr::n_distinct(x) / length(x) >= min_unique
+        })) |>
+        names()
+}
+
+#' matches every context entry against all gene identifier columns and
+#' translates the matched genes into the selected identifier, so contexts can
+#' use any (or a mix of) identifiers. each entry is attributed to the first
+#' column it is found in, so put the selected identifier first
+#' @noRd
+.match_context <- function(RES, CONTEXT, gene_var, GENE_VARS) {
+    context <- unique(CONTEXT[!is.na(CONTEXT) & CONTEXT != ""])
+    GENE_VARS <- intersect(GENE_VARS, colnames(RES))
+
+    matched_via <- rep(NA_character_, length(context))
+    for (v in rev(GENE_VARS)) {
+        matched_via[context %in% RES[[v]]] <- v
+    }
+
+    # rows matched by any identifier, translated into the selected one
+    rows <- purrr::map(GENE_VARS, \(v) RES[[v]] %in% context) |>
+        purrr::reduce(`|`, .init = rep(FALSE, nrow(RES)))
+    genes <- unique(RES[[gene_var]][rows])
+
+    list(
+        genes = genes[!is.na(genes)],
+        context_size = length(context),
+        matched_via = table(factor(matched_via, levels = GENE_VARS)),
+        unmatched = context[is.na(matched_via)]
+    )
+}
+
 #' splits the tested genes into up- and downregulated genes and restricts the
 #' context to the tested genes. directions without DE genes are dropped
 #' @noRd
@@ -884,14 +931,17 @@
 
 #' tests for overrepresentation of a gene set (CONTEXT) among up- and
 #' down-regulated genes, using all tested genes as the universe.
-#' directions without DE genes are dropped from the table
+#' directions without DE genes are dropped from the table. context_size
+#' overrides the reported size of the context, e.g. the size of the list
+#' before it was translated by .match_context()
 #' @noRd
 .check_context_enrichment <- function(
     RES,
     CONTEXT,
     padj_CO = 0.05,
     fc_CO = 1,
-    gene_var = "gene_id"
+    gene_var = "gene_id",
+    context_size = NULL
 ) {
     split <- .split_context_genes(RES, CONTEXT, padj_CO, fc_CO, gene_var)
     if (length(split$de_genes) == 0 || length(split$context) == 0) {
@@ -906,7 +956,7 @@
         data.frame(
             direction = direction,
             n_genes = n_genes,
-            context_size = length(split$context_raw),
+            context_size = context_size %||% length(split$context_raw),
             context_size_tested = n_context,
             overlap = n_overlap,
             fold_enrichment = round(
@@ -1040,4 +1090,123 @@
         )
     }
     context
+}
+
+#' the tabs presented on the About tab: the tab title (as used in
+#' `main_tabs`), the thumbnail file and a short description in markdown
+#' @noRd
+.about_tabs <- function() {
+    list(
+        list(
+            tab = "Data Overview",
+            thumbnail = "01_overview.png",
+            help = "Displays an overview of the data loaded into the app, with a focus on its metadata. Here you will find additional information on your samples, for example which patient a sample was taken from or whether it was treated."
+        ),
+        list(
+            tab = "PCA",
+            thumbnail = "02_pca.png",
+            help = "Calculated on your data, the PCA shows the spread of your samples. Each sample is coloured by the \"Color/Group by:\" option set on the left."
+        ),
+        list(
+            tab = "Gene Expression",
+            thumbnail = "03_gene_expression.png",
+            help = "Check the expression of a gene of interest in your data. The expression is shown for each level of the selected grouping variable, and you can select/deselect certain groups. Different gene identifiers can be selected on the left; gene symbols are the most human-readable. Below the plot, the expression values are shown for each sample, and below that, the differential expression status of the gene in the different comparisons."
+        ),
+        list(
+            tab = "DE Results",
+            thumbnail = "04_de_results.png",
+            help = "A big-picture overview of the differential expression result selected on the left. A bar chart displays the number of differentially expressed genes, and below it is a table with the test statistics per gene."
+        ),
+        list(
+            tab = "Volcano Plot",
+            thumbnail = "05_volcano_plot.png",
+            help = "Explore your differential expression results as a volcano plot. You can select a number of top genes (by p-value) to label, highlight genes of interest or just hover over a point to get the underlying gene, p-value and fold change."
+        ),
+        list(
+            tab = "Enrichment Results",
+            thumbnail = "06_enrichment_results.png",
+            help = "Shows the enrichment results for the selected DE result. The genes driving each enrichment can be shown as well, using the checkbox at the top of the tab."
+        ),
+        list(
+            tab = "FC FC",
+            thumbnail = "07_fc_fc.png",
+            help = "Compare DE results to one another, using significance and fold change. Below the plot, you get a table showing all genes that are significant in at least one of the results; you can filter this list by a minimum difference in fold change between the two results in question."
+        ),
+        list(
+            tab = "Context",
+            thumbnail = "08_context.png",
+            help = "It can help to put your results into context, for example with known genetic risk factors. The genes in a context are overlaid on the selected result, and their overrepresentation is tested. You can select a context from the list or add one yourself, either by pasting a list of genes or by uploading a table where each column is a context."
+        )
+    )
+}
+
+#' builds the grid of tab thumbnails for the About tab. Clicking a thumbnail
+#' or tab name sets `input$about_goto`, clicking the question mark sets
+#' `input$about_help`, both to the tab title
+#' @noRd
+.about_tab_cards <- function() {
+    cards <- purrr::map(.about_tabs(), \(x) {
+        shiny::column(
+            3,
+            htmltools::div(
+                class = "about-card",
+                htmltools::tags$a(
+                    href = "#",
+                    class = "about-goto",
+                    `data-tab` = x$tab,
+                    htmltools::tags$img(
+                        src = paste0("exploreSE/thumbnails/", x$thumbnail),
+                        alt = paste("Preview of the", x$tab, "tab")
+                    )
+                ),
+                htmltools::div(
+                    class = "about-card-title",
+                    htmltools::tags$a(
+                        href = "#",
+                        class = "about-goto",
+                        `data-tab` = x$tab,
+                        x$tab
+                    ),
+                    htmltools::tags$a(
+                        href = "#",
+                        class = "about-help",
+                        `data-tab` = x$tab,
+                        title = paste("More about the", x$tab, "tab"),
+                        `aria-label` = paste("More about the", x$tab, "tab"),
+                        shiny::icon("circle-question")
+                    )
+                )
+            )
+        )
+    })
+
+    htmltools::tagList(
+        htmltools::tags$style(htmltools::HTML(
+            "
+            .about-card { text-align: center; margin-bottom: 24px; }
+            .about-card img {
+                width: 150px; height: 150px; max-width: 100%;
+                border-radius: 16px;
+                transition: box-shadow 0.15s;
+            }
+            .about-card a.about-goto:hover img,
+            .about-card a.about-goto:focus img {
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+            }
+            .about-card-title { margin-top: 8px; font-weight: 600; }
+            .about-help { margin-left: 6px; color: #777; }
+            .about-help:hover, .about-help:focus { color: #333; }
+            "
+        )),
+        htmltools::tags$script(htmltools::HTML(
+            "
+            $(document).on('click', '.about-goto, .about-help', function(e) {
+              e.preventDefault();
+              var id = $(this).hasClass('about-help') ? 'about_help' : 'about_goto';
+              Shiny.setInputValue(id, $(this).data('tab'), {priority: 'event'});
+            });
+            "
+        )),
+        shiny::fluidRow(cards)
+    )
 }

@@ -63,3 +63,9 @@
 # exploreSE 0.99.17
 * added example contexts
 * updates to vignette and readme to reflect the example context
+
+# exploreSE 0.99.18
+* edited the example context, updates sources 
+* added a landing page with thumbnails and introduction 
+* added cross-identifier matching for the context lists
+* accordingly, updated to the vignette and readme
